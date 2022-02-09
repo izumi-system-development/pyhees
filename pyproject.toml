@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "pyhees"
+version = "0.1.0"
+description = ""
+authors = ["ARAI Yusuke <y-arai@izumi-system.co.jp>"]
+
+[tool.poetry.dependencies]
+python = ">=3.8.10, <3.9"
+wheel = "==0.37.0"
+numpy = "==1.18.1"
+pandas = "==0.25.3"
+pip = ">=22.0.2"
+python-dateutil = "==2.8.2"
+pytz = "==2021.3"
+scipy = "==1.4.1"
+setuptools = "==44.0.0"
+simplejson = "==3.17.5"
+six = "==1.16.0"
+matplotlib = "==3.5.*"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0", "pip>=22.0.2"]
+build-backend = "poetry.core.masonry.api"
