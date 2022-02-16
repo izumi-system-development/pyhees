@@ -3,6 +3,10 @@
 import numpy as np
 import pandas as pd
 import json
+import os
+import sys
+scriptDir = os.path.dirname(__file__)
+sys.path.append(scriptDir + '/../src')
 
 # ダクト式セントラル空調機
 import pyhees.section4_2 as dc
