@@ -8,6 +8,8 @@ import sys
 scriptDir = os.path.dirname(__file__)
 sys.path.append(scriptDir + '/../src')
 
+import calculation_constants as constants
+
 from pyhees.section2_1_b import get_f_prim
 
 from pyhees.section4_1 import calc_heating_load, calc_cooling_load, get_virtual_heating_devices, get_alpha_UT_H_A
@@ -635,6 +637,9 @@ def get_solarheat():
 
 # JSONの読み込み
 input = json.loads(input())
+
+# 計算時の定数を取得
+constants.set_constants(input)
 
 # 基本情報を取得
 type, tatekata, A_A, A_MR, A_OR, region, sol_region = get_basic(input)

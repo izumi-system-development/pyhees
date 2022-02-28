@@ -34,6 +34,8 @@ from pyhees.section11_3 import \
     load_schedule, \
     get_schedule_ac
 
+import calculation_constants as constants
+
 # 未処理負荷と機器の計算に必要な変数を取得
 def calc_Q_UT_A(A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs_dsgn_H, V_hs_dsgn_C, Q,
              VAV, general_ventilation, duct_insulation, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i):
@@ -870,7 +872,7 @@ def get_Theta_hs_out_max_H_d_t(Theta_star_hs_in_d_t, Q_hs_max_H_d_t, V_dash_supp
     c_p_air = get_c_p_air()
     rho_air = get_rho_air()
     return np.clip(Theta_star_hs_in_d_t + ((Q_hs_max_H_d_t * 10 ** 6) / \
-                                           (c_p_air * rho_air * np.sum(V_dash_supply_d_t_i[:5, :], axis=0))), None, 45)
+                                           (c_p_air * rho_air * np.sum(V_dash_supply_d_t_i[:5, :], axis=0))), None, constants.Theta_hs_out_max_H_d_t_limit)
 
 
 def get_Theta_hs_out_min_C_d_t(Theta_star_hs_in_d_t, Q_hs_max_CS_d_t, V_dash_supply_d_t_i):
@@ -888,7 +890,7 @@ def get_Theta_hs_out_min_C_d_t(Theta_star_hs_in_d_t, Q_hs_max_CS_d_t, V_dash_sup
     c_p_air = get_c_p_air()
     rho_air = get_rho_air()
     return np.clip(Theta_star_hs_in_d_t - ((Q_hs_max_CS_d_t * 10 ** 6) / \
-                                           (c_p_air * rho_air * np.sum(V_dash_supply_d_t_i[:5, :], axis=0))), 15, None)
+                                           (c_p_air * rho_air * np.sum(V_dash_supply_d_t_i[:5, :], axis=0))), constants.Theta_hs_out_min_C_d_t_limit, None)
 
 
 def get_X_hs_out_min_C_d_t(X_star_hs_in_d_t, Q_hs_max_CL_d_t, V_dash_supply_d_t_i):
@@ -1066,7 +1068,7 @@ def get_C_df_H_d_t(Theta_ex_d_t, h_ex_d_t):
 
     """
     C_df_H_d_t = np.ones(24 * 365)
-    C_df_H_d_t[np.logical_and(Theta_ex_d_t < 5, h_ex_d_t > 80)] = 0.77
+    C_df_H_d_t[np.logical_and(Theta_ex_d_t < constants.defrost_temp_ductcentral, h_ex_d_t > constants.defrost_humid_ductcentral)] = constants.C_df_H_d_t_defrost_ductcentral
     return C_df_H_d_t
 
 
@@ -2085,7 +2087,7 @@ l_duct_R_i = np.array([
 # ダクトiの線熱損失係数 [W/mK]
 def get_phi_i():
     """ """
-    return np.array([0.49] * 5)
+    return np.array([constants.phi_i] * 5)
 
 
 # ============================================================================
