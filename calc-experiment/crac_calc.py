@@ -8,6 +8,11 @@ import sys
 scriptDir = os.path.dirname(__file__)
 sys.path.append(scriptDir + '/../src')
 
+from pyhees.section2_1_b import get_f_prim
+
+from pyhees.section4_1 import calc_heating_load, calc_cooling_load, get_virtual_heating_devices, get_alpha_UT_H_A
+from pyhees.section4_1_a import calc_heating_mode
+
 # ダクト式セントラル空調機
 import pyhees.section4_2 as dc
 import pyhees.section4_2_a as dc_a
@@ -20,37 +25,18 @@ import pyhees.section4_3_a as rac_spec
 # 床下
 import pyhees.section3_1_e as uf
 import pyhees.section3_1 as ld
-
-from pyhees.section3_2_8 import \
-    get_r_env
-
-from pyhees.section11_1 import \
-    load_outdoor, \
-    get_T_ex, \
-    get_Theta_ex, \
-    get_X_ex, \
-    calc_h_ex, \
-    load_climate, \
-    get_J
-
-from pyhees.section3_1 import \
-    get_A_NR
-
-from pyhees.section4_7_i import \
-    get_A_A_R
-
-from pyhees.section11_3 import \
-    load_schedule, \
-    get_schedule_ac
+from pyhees.section3_2 import calc_r_env, get_Q_dash, get_eta_H, get_eta_C
+from pyhees.section3_2_8 import get_r_env
+from pyhees.section11_1 import calc_h_ex
 
 # 日付dの時刻tにおける1時間当たりの暖房時の消費電力量（kWh/h）(1)
 def calc_CRAC_E_E_H_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, V_hs_supply_d_t, V_hs_vent_d_t, C_df_H_d_t,
-           V_hs_dsgn_H, P_fan_rtd_H, region, q_rtd_C, q_rtd_H, e_rtd_H):
+           V_hs_dsgn_H, P_fan_rtd_H, region, q_rtd_C, q_rtd_H, e_rtd_H, dualcompressor_H):
 
     # (3)
     q_hs_H_d_t = dc_a.get_q_hs_H_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, V_hs_supply_d_t, C_df_H_d_t, region)
 
-    E_E_CRAC_H_d_t = rac.calc_E_E_H_d_t(region, q_rtd_C, q_rtd_H, e_rtd_H, False, q_hs_H_d_t * 3.6 / 1000)
+    E_E_CRAC_H_d_t = rac.calc_E_E_H_d_t(region, q_rtd_C, q_rtd_H, e_rtd_H, dualcompressor_H, q_hs_H_d_t * 3.6 / 1000)
 
     # (37)
     E_E_fan_H_d_t = dc_a.get_E_E_fan_H_d_t(P_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t * 3.6 / 1000)
@@ -91,7 +77,7 @@ def get_q_hs_C_d_t_2(Theta_hs_out_d_t, Theta_hs_in_d_t, X_hs_out_d_t, X_hs_in_d_
     return q_hs_CS_d_t, q_hs_CL_d_t
 
 def get_CRAC_E_E_C_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t,  X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, V_hs_vent_d_t,
-                  q_rtd_C, e_rtd_C, V_hs_dsgn_C, P_fan_rtd_C, region):
+                  q_rtd_C, e_rtd_C, V_hs_dsgn_C, P_fan_rtd_C, region, dualcompressor_C):
 
     # 外気条件
     #outdoor = load_outdoor()
@@ -104,7 +90,7 @@ def get_CRAC_E_E_C_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t,  X_hs_out_d_t, X_hs_in
     # (4)
     q_hs_CS_d_t, q_hs_CL_d_t = get_q_hs_C_d_t_2(Theta_hs_out_d_t, Theta_hs_in_d_t, X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, region)
 
-    E_E_CRAC_C_d_t = rac.calc_E_E_C_d_t(region, q_rtd_C, e_rtd_C, False, q_hs_CS_d_t * 3.6 / 1000, q_hs_CL_d_t * 3.6 / 1000)
+    E_E_CRAC_C_d_t = rac.calc_E_E_C_d_t(region, q_rtd_C, e_rtd_C, dualcompressor_C, q_hs_CS_d_t * 3.6 / 1000, q_hs_CL_d_t * 3.6 / 1000)
 
     # (38)
     E_E_fan_C_d_t = dc_a.get_E_E_fan_C_d_t(P_fan_rtd_C, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_C, q_hs_CS_d_t * 3.6 / 1000 + q_hs_CL_d_t * 3.6 / 1000)
@@ -139,7 +125,7 @@ def calc_CRAC_Q_UT_A(A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_rtd_C, q_rtd_H, q_max
     #主たる居室・その他居室・非居室の面積
     A_HCZ_i = np.array([ld.get_A_HCZ_i(i, A_A, A_MR, A_OR) for i in range(1, 6)])
     A_HCZ_R_i = [ld.get_A_HCZ_R_i(i) for i in range(1, 6)]
-    A_NR = get_A_NR(A_A, A_MR, A_OR)
+    A_NR = ld.get_A_NR(A_A, A_MR, A_OR)
 
     # (67)  水の蒸発潜熱
     L_wtr = dc.get_L_wtr()
@@ -438,20 +424,7 @@ def calc_CRAC_Q_UT_A(A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_rtd_C, q_rtd_H, q_max
     return E_C_UT_d_t, Q_UT_H_d_t_i, Q_UT_CS_d_t_i, Q_UT_CL_d_t_i, Theta_hs_out_d_t, Theta_hs_in_d_t, \
            X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, V_hs_vent_d_t, C_df_H_d_t
 
-"""# calc_CRAC.py"""
-
-import numpy as np
-
-from pyhees.section2_1_b import get_f_prim
-from pyhees.section3_1 import get_Q
-from pyhees.section3_2 import calc_r_env, get_Q_dash, get_eta_H, get_eta_C
-from pyhees.section4_1 import calc_heating_load, calc_cooling_load, get_virtual_heating_devices, get_alpha_UT_H_A
-from pyhees.section4_1_a import calc_heating_mode
-
-import pyhees.section4_3 as rac
-import pyhees.section4_3_a as rac_spec
-
-def get_basic():
+def get_basic(input: dict):
     """基本情報の設定
 
     :return: 住宅タイプ、住宅建て方、床面積、地域区分、年間日射地域区分
@@ -463,51 +436,31 @@ def get_basic():
     tatekata = '戸建住宅'
 
     # 床面積
-    """
-    A_A = 120.08
-    A_MR = 29.81
-    A_OR = 51.34
-    """
-
-    A_A = 132.84
-    A_MR = 31.47
-    A_OR = 64.18
+    A_A = input['A_A']
+    A_MR = input['A_MR']
+    A_OR = input['A_OR']
 
     # 地域区分
-    region = 6
+    region = input.region
 
     # 年間日射地域区分
     sol_region = None
 
     return type, tatekata, A_A, A_MR, A_OR, region, sol_region
 
-def get_env():
+def get_env(input: dict):
     """外皮の設定
 
     :return: 外皮条件
     """
-    """
     ENV = {
         'method': '当該住宅の外皮面積の合計を用いて評価する',
-        'A_env': 307.51,
-        'A_A': 120.08,
-        'U_A': 0.87,
-        'eta_A_H': 4.3,
-        'eta_A_C': 2.8
+        'A_env': input['A_env'],
+        'A_A': input['A_A'],
+        'U_A': input['U_A'],
+        'eta_A_H': input['eta_A_H'],
+        'eta_A_C': input['eta_A_C']
     }
-    """
-    #三鷹I邸
-    ENV = {
-        'method': '当該住宅の外皮面積の合計を用いて評価する',
-        'A_env': 362.04,
-        'A_A': 132.84,
-        'U_A': 0.377,
-        'eta_A_H': 1.465,
-        'eta_A_C': 0.796
-    }
-
-    #主たる居室:31.47m2、その他居室:64.18m2、非居室:37.19m2、合計:132.84m2
-
 
     # 自然風の利用 主たる居室
     NV_MR = 0
@@ -525,7 +478,7 @@ def get_env():
 
     return ENV, NV_MR, NV_OR, TS, r_A_ufvnt, underfloor_insulation
 
-def get_heating():
+def get_heating(input: dict):
     """暖房の設定
 
     :return: 暖房方式、住戸全体の暖房条件、主たる居室の暖房機器、その他居室の暖房機器、温水暖房の種類
@@ -533,14 +486,37 @@ def get_heating():
     # 暖房方式
     mode_H = '住戸全体を連続的に暖房する方式'
 
-    # 住戸全体を暖房する
     H_A = {
         'type': 'ダクト式セントラル空調機',
-        'duct_insulation': '全てもしくは一部が断熱区画外である',
-        'VAV': False,
-        'general_ventilation': True,
-        'EquipmentSpec': '入力しない'
+        'VAV': input['H_A']['VAV'] == 2,
+        'general_ventilation': input['H_A']['general_ventilation'] == 2,
+        'q_hs_rtd_H': input['H_A']['q_hs_rtd_H'],
+        'P_hs_rtd_H': input['H_A']['P_hs_rtd_H'],
+        'V_fan_rtd_H': input['H_A']['V_fan_rtd_H'],
+        'P_fan_rtd_H': input['H_A']['P_fan_rtd_H'],
+        'q_hs_mid_H': input['H_A']['q_hs_mid_H'],
+        'P_hs_mid_H': input['H_A']['P_hs_mid_H'],
+        'V_fan_mid_H': input['H_A']['V_fan_mid_H'],
+        'P_fan_mid_H': input['H_A']['P_fan_mid_H']
     }
+
+    # ダクトが通過する空間
+    if input['H_A']['duct_insulation'] == 1:
+        H_A['duct_insulation'] = '全てもしくは一部が断熱区画外である'
+    elif input['H_A']['duct_insulation'] == 2:
+        H_A['duct_insulation'] = '全て断熱区画内である'
+    else:
+        raise Exception('ダクトが通過する空間の入力が不正です。')
+
+    # 機器の仕様の入力
+    if input['H_A']['input'] == 1:
+        H_A['EquipmentSpec'] = '入力しない'
+    elif input['H_A']['input'] == 2:
+        H_A['EquipmentSpec'] = '定格能力試験の値を入力する'
+    elif input['H_A']['input'] == 3:
+        H_A['EquipmentSpec'] = '定格能力試験と中間能力試験の値を入力する'
+    else:
+        raise Exception('機器の仕様の入力が不正です。')
 
     # 主たる居室暖房機器
     H_MR = None
@@ -553,7 +529,7 @@ def get_heating():
 
     return mode_H, H_A, H_MR, H_OR, H_HS
 
-def get_cooling():
+def get_cooling(input: dict):
     """冷房の設定
 
     :return: 冷房方式、住戸全体の冷房条件、主たる居室冷房条件、その他居室冷房条件
@@ -561,14 +537,37 @@ def get_cooling():
     # 冷房方式
     mode_C = '住戸全体を連続的に冷房する方式'
 
-    # 住戸全体を冷房する
     C_A = {
         'type': 'ダクト式セントラル空調機',
-        'duct_insulation': '全てもしくは一部が断熱区画外である',
-        'VAV': False,
-        'general_ventilation': True,
-        'EquipmentSpec': '入力しない'
+        'VAV': input['C_A']['VAV'] == 2,
+        'general_ventilation': input['C_A']['general_ventilation'] == 2,
+        'q_hs_rtd_C': input['C_A']['q_hs_rtd_C'],
+        'P_hs_rtd_C': input['C_A']['P_hs_rtd_C'],
+        'V_fan_rtd_C': input['C_A']['V_fan_rtd_C'],
+        'P_fan_rtd_C': input['C_A']['P_fan_rtd_C'],
+        'q_hs_mid_C': input['C_A']['q_hs_mid_C'],
+        'P_hs_mid_C': input['C_A']['P_hs_mid_C'],
+        'V_fan_mid_C': input['C_A']['V_fan_mid_C'],
+        'P_fan_mid_C': input['C_A']['P_fan_mid_C']
     }
+
+    # ダクトが通過する空間
+    if input['C_A']['duct_insulation'] == 1:
+        C_A['duct_insulation'] = '全てもしくは一部が断熱区画外である'
+    elif input['C_A']['duct_insulation'] == 2:
+        C_A['duct_insulation'] = '全て断熱区画内である'
+    else:
+        raise Exception('ダクトが通過する空間の入力が不正です。')
+
+    # 機器の仕様の入力
+    if input['C_A']['input'] == 1:
+        C_A['EquipmentSpec'] = '入力しない'
+    elif input['C_A']['input'] == 2:
+        C_A['EquipmentSpec'] = '定格能力試験の値を入力する'
+    elif input['C_A']['input'] == 3:
+        C_A['EquipmentSpec'] = '定格能力試験と中間能力試験の値を入力する'
+    else:
+        raise Exception('機器の仕様の入力が不正です。')
 
     # 主たる居室冷房機器
     C_MR = None
@@ -578,14 +577,21 @@ def get_cooling():
 
     return mode_C, C_A, C_MR, C_OR
 
-def get_CRAC_spec():
-    #A_HCZ = 120.08
-    A_HCZ = 132.84
-    #e_class = 'い'
-    e_class = 'は'
+def get_CRAC_spec(input: dict):
+    # エネルギー消費効率の入力（冷房）
+    # 暖房は使われない
+    e_class = None
+    if input['C_A']['input_mode'] == 2:
+        if input['C_A']['mode'] == 1:
+            e_class = 'い'
+        elif input['C_A']['mode'] == 2:
+            e_class = 'ろ'
+        elif input['C_A']['mode'] == 3:
+            e_class = 'は'
+        else:
+            raise Exception('エネルギー消費効率の入力（冷房）が不正です。')
 
     # 定格冷房能力, 定格暖房能力
-    #q_rtd_C = rac_spec.get_q_rtd_C(A_HCZ)
     q_rtd_C = 2800
     q_rtd_H = rac_spec.get_q_rtd_H(q_rtd_C)
 
@@ -597,7 +603,11 @@ def get_CRAC_spec():
     e_rtd_C = rac_spec.get_e_rtd_C(e_class, q_rtd_C)
     e_rtd_H = rac_spec.get_e_rtd_H(e_rtd_C)
 
-    return q_rtd_C, q_rtd_H, q_max_C, q_max_H, e_rtd_C, e_rtd_H
+    # 小能力時高効率型コンプレッサー
+    dualcompressor_C = input['C_A']['dualcompressor'] == 2
+    dualcompressor_H = input['H_A']['dualcompressor'] == 2
+
+    return q_rtd_C, q_rtd_H, q_max_C, q_max_H, e_rtd_C, e_rtd_H, dualcompressor_C, dualcompressor_H
 
 def get_heatexchangeventilation():
     """熱交換型換気の設定
@@ -627,16 +637,16 @@ def get_solarheat():
 input = json.loads(input())
 
 # 基本情報を取得
-type, tatekata, A_A, A_MR, A_OR, region, sol_region = get_basic()
+type, tatekata, A_A, A_MR, A_OR, region, sol_region = get_basic(input)
 
 # 外皮条件を取得
-ENV, NV_MR, NV_OR, TS, r_A_ufvnt, underfloor_insulation = get_env()
+ENV, NV_MR, NV_OR, TS, r_A_ufvnt, underfloor_insulation = get_env(input)
 
 # 暖房条件の取得
-mode_H, H_A, H_MR, H_OR, H_HS = get_heating()
+mode_H, H_A, H_MR, H_OR, H_HS = get_heating(input)
 
 # 冷房条件の取得
-mode_C, C_A, C_MR, C_OR = get_cooling()
+mode_C, C_A, C_MR, C_OR = get_cooling(input)
 
 # 熱交換型換気の取得
 HEX = get_heatexchangeventilation()
@@ -645,13 +655,13 @@ HEX = get_heatexchangeventilation()
 SHC = get_solarheat()
 
 # セントラルルームエアコンディショナの性能の取得
-q_rtd_C, q_rtd_H, q_max_C, q_max_H, e_rtd_C, e_rtd_H = get_CRAC_spec()
+q_rtd_C, q_rtd_H, q_max_C, q_max_H, e_rtd_C, e_rtd_H, dualcompressor_C, dualcompressor_H = get_CRAC_spec(input)
 
 # ---------- その他計算条件を取得 ----------
 
  # 床面積の合計に対する外皮の部位の面積の合計の比
 r_env = calc_r_env(
-     method='当該住戸の外皮の部位の面積等を用いて外皮性能を評価する方法',
+    method='当該住戸の外皮の部位の面積等を用いて外皮性能を評価する方法',
     A_env=ENV['A_env'],
     A_A=A_A
  )
@@ -659,7 +669,7 @@ r_env = calc_r_env(
 # 熱損失係数（換気による熱損失を含まない）
 Q_dash = get_Q_dash(ENV['U_A'], r_env)
 # 熱損失係数
-Q = get_Q(Q_dash)
+Q = ld.get_Q(Q_dash)
 
 # 日射取得係数の取得
 mu_H = get_eta_H(ENV['eta_A_H'], r_env)
@@ -681,8 +691,6 @@ else:
     CAV = True
     r_A_ufvnt = None
     underfloor_insulation = False
-
-#CAV= False
 
 ##### 暖房負荷の取得（MJ/h）
 
@@ -729,7 +737,8 @@ E_E_H_d_t: np.ndarray = calc_CRAC_E_E_H_d_t(
     region = region,
     q_rtd_C = q_rtd_C,
     q_rtd_H = q_rtd_H,
-    e_rtd_H = e_rtd_H)
+    e_rtd_H = e_rtd_H,
+    dualcompressor_H = dualcompressor_H)
 """日付dの時刻tにおける1時間当たりの暖房時の消費電力量(kWh/h)"""
 
 alpha_UT_H_A: float = get_alpha_UT_H_A(region)
@@ -769,7 +778,8 @@ E_E_C_d_t = get_CRAC_E_E_C_d_t(
     e_rtd_C = e_rtd_C,
     V_hs_dsgn_C = V_hs_dsgn_C,
     P_fan_rtd_C = P_fan_rtd_C,
-    region = region)
+    region = region,
+    dualcompressor_C = dualcompressor_C)
 """日付dの時刻tにおける1時間当たりの冷房時の消費電力量(kWh/h)"""
 
 ##### 計算結果のまとめ
