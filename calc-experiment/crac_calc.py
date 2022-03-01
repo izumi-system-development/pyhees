@@ -443,7 +443,7 @@ def get_basic(input: dict):
     A_OR = input['A_OR']
 
     # 地域区分
-    region = input.region
+    region = input['region']
 
     # 年間日射地域区分
     sol_region = None
@@ -490,8 +490,8 @@ def get_heating(input: dict):
 
     H_A = {
         'type': 'ダクト式セントラル空調機',
-        'VAV': input['H_A']['VAV'] == 2,
-        'general_ventilation': input['H_A']['general_ventilation'] == 2,
+        'VAV': input['H_A']['VAV'] == '2',
+        'general_ventilation': input['H_A']['general_ventilation'] == '2',
         'q_hs_rtd_H': input['H_A']['q_hs_rtd_H'],
         'P_hs_rtd_H': input['H_A']['P_hs_rtd_H'],
         'V_fan_rtd_H': input['H_A']['V_fan_rtd_H'],
@@ -503,19 +503,21 @@ def get_heating(input: dict):
     }
 
     # ダクトが通過する空間
-    if input['H_A']['duct_insulation'] == 1:
+    if input['H_A']['duct_insulation'] == '1':
         H_A['duct_insulation'] = '全てもしくは一部が断熱区画外である'
-    elif input['H_A']['duct_insulation'] == 2:
+    elif input['H_A']['duct_insulation'] == '2':
         H_A['duct_insulation'] = '全て断熱区画内である'
     else:
+        import pprint
+        pprint.pprint(input['H_A']['duct_insulation'])
         raise Exception('ダクトが通過する空間の入力が不正です。')
 
     # 機器の仕様の入力
-    if input['H_A']['input'] == 1:
+    if input['H_A']['input'] == '1':
         H_A['EquipmentSpec'] = '入力しない'
-    elif input['H_A']['input'] == 2:
+    elif input['H_A']['input'] == '2':
         H_A['EquipmentSpec'] = '定格能力試験の値を入力する'
-    elif input['H_A']['input'] == 3:
+    elif input['H_A']['input'] == '3':
         H_A['EquipmentSpec'] = '定格能力試験と中間能力試験の値を入力する'
     else:
         raise Exception('機器の仕様の入力が不正です。')
@@ -541,8 +543,8 @@ def get_cooling(input: dict):
 
     C_A = {
         'type': 'ダクト式セントラル空調機',
-        'VAV': input['C_A']['VAV'] == 2,
-        'general_ventilation': input['C_A']['general_ventilation'] == 2,
+        'VAV': input['C_A']['VAV'] == '2',
+        'general_ventilation': input['C_A']['general_ventilation'] == '2',
         'q_hs_rtd_C': input['C_A']['q_hs_rtd_C'],
         'P_hs_rtd_C': input['C_A']['P_hs_rtd_C'],
         'V_fan_rtd_C': input['C_A']['V_fan_rtd_C'],
@@ -554,19 +556,19 @@ def get_cooling(input: dict):
     }
 
     # ダクトが通過する空間
-    if input['C_A']['duct_insulation'] == 1:
+    if input['C_A']['duct_insulation'] == '1':
         C_A['duct_insulation'] = '全てもしくは一部が断熱区画外である'
-    elif input['C_A']['duct_insulation'] == 2:
+    elif input['C_A']['duct_insulation'] == '2':
         C_A['duct_insulation'] = '全て断熱区画内である'
     else:
         raise Exception('ダクトが通過する空間の入力が不正です。')
 
     # 機器の仕様の入力
-    if input['C_A']['input'] == 1:
+    if input['C_A']['input'] == '1':
         C_A['EquipmentSpec'] = '入力しない'
-    elif input['C_A']['input'] == 2:
+    elif input['C_A']['input'] == '2':
         C_A['EquipmentSpec'] = '定格能力試験の値を入力する'
-    elif input['C_A']['input'] == 3:
+    elif input['C_A']['input'] == '3':
         C_A['EquipmentSpec'] = '定格能力試験と中間能力試験の値を入力する'
     else:
         raise Exception('機器の仕様の入力が不正です。')
@@ -583,12 +585,12 @@ def get_CRAC_spec(input: dict):
     # エネルギー消費効率の入力（冷房）
     # 暖房は使われない
     e_class = None
-    if input['C_A']['input_mode'] == 2:
-        if input['C_A']['mode'] == 1:
+    if input['C_A']['input_mode'] == '2':
+        if input['C_A']['mode'] == '1':
             e_class = 'い'
-        elif input['C_A']['mode'] == 2:
+        elif input['C_A']['mode'] == '2':
             e_class = 'ろ'
-        elif input['C_A']['mode'] == 3:
+        elif input['C_A']['mode'] == '3':
             e_class = 'は'
         else:
             raise Exception('エネルギー消費効率の入力（冷房）が不正です。')
@@ -606,8 +608,8 @@ def get_CRAC_spec(input: dict):
     e_rtd_H = rac_spec.get_e_rtd_H(e_rtd_C)
 
     # 小能力時高効率型コンプレッサー
-    dualcompressor_C = input['C_A']['dualcompressor'] == 2
-    dualcompressor_H = input['H_A']['dualcompressor'] == 2
+    dualcompressor_C = input['C_A']['dualcompressor'] == '2'
+    dualcompressor_H = input['H_A']['dualcompressor'] == '2'
 
     return q_rtd_C, q_rtd_H, q_max_C, q_max_H, e_rtd_C, e_rtd_H, dualcompressor_C, dualcompressor_H
 
@@ -635,8 +637,10 @@ def get_solarheat():
 
 # ---------- 計算条件の取得 ----------
 
+
 # JSONの読み込み
-input = json.loads(input())
+rawInput = sys.stdin.read(-1)
+input = json.loads(rawInput)
 
 # 計算時の定数を取得
 constants.set_constants(input)
