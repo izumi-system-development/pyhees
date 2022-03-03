@@ -708,6 +708,8 @@ L_H_d_t_i: np.ndarray
 
 L_H_d_t_i, _ = calc_heating_load(region, sol_region, A_A, A_MR, A_OR, Q, mu_H, mu_C, NV_MR, NV_OR, TS, r_A_ufvnt,
                                      HEX, underfloor_insulation, mode_H, mode_C, spec_MR, spec_OR, mode_MR, mode_OR, SHC)
+L_H_d_t: np.ndarray = np.sum(L_H_d_t_i, axis=0)
+"""暖房負荷の全区画合計 [MJ/h]"""
 
 ##### 冷房負荷の取得（MJ/h）
 L_CS_d_t_i: np.ndarray
@@ -716,6 +718,10 @@ L_CL_d_t_i: np.ndarray
 """冷房潜熱負荷 [MJ/h]"""
 L_CS_d_t_i, L_CL_d_t_i = calc_cooling_load(region, A_A, A_MR, A_OR, Q, mu_H, mu_C, NV_MR, NV_OR, r_A_ufvnt,
                                                underfloor_insulation, mode_C, mode_H, mode_MR, mode_OR, TS, HEX)
+L_CS_d_t: np.ndarray = np.sum(L_CS_d_t_i, axis=0)
+"""冷房顕熱負荷の全区画合計 [MJ/h]"""
+L_CL_d_t: np.ndarray = np.sum(L_CL_d_t_i, axis=0)
+"""冷房潜熱負荷の全区画合計 [MJ/h]"""
 
 ##### 暖房消費電力の計算（kWh/h）
 V_fan_rtd_H: float = dc_spec.get_V_fan_rtd_H(q_rtd_H)
@@ -809,8 +815,24 @@ E_C = np.sum(E_C_d_t)
 """1 年当たりの冷房設備の設計一次エネルギー消費量(MJ/年)"""
 
 print(json.dumps({
+    # 1年当たりの設計一次エネルギー消費量(MJ/年)
     'E_H': E_H,
-    'E_H_d_t': E_H_d_t.tolist(),
     'E_C': E_C,
-    'E_C_d_t': E_C_d_t.tolist()
+
+    # 1時間当たりの冷房設備の設計一次エネルギー消費量(MJ/h)
+    'E_H_d_t': E_H_d_t.tolist(),
+    'E_C_d_t': E_C_d_t.tolist(),
+
+    # 1時間当たりの消費電力量(kWh/h)
+    'E_E_H_d_t': E_E_H_d_t.tolist(),
+    'E_E_C_d_t': E_E_C_d_t.tolist(),
+
+    # 未処理負荷の設計一次エネルギー消費量相当値(MJ/h)
+    'E_UT_H_d_t': E_UT_H_d_t.tolist(),
+    'E_C_UT_d_t': E_C_UT_d_t.tolist(),
+
+    # 負荷(MJ/h)
+    'L_H_d_t': L_H_d_t.tolist(),
+    'L_CS_d_t': L_CS_d_t.tolist(),
+    'L_CL_d_t': L_CL_d_t.tolist(),
     }))
