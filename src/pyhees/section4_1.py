@@ -344,6 +344,7 @@ def calc_Q_UT_H_d_t(i, device, A_A, A_MR, A_OR, region, mode, L_H_d_t):
             q_rtd_H=q_rtd_H,
             e_rtd_H=e_rtd_H,
             L_H_d_t=L_H_d_t,
+            input_C_af_H=device['input_C_af_H'],
         )
 
     elif device['type'] == 'FF暖房機':
@@ -399,7 +400,7 @@ def calc_Q_UT_H_d_t(i, device, A_A, A_MR, A_OR, region, mode, L_H_d_t):
         r_Af = device['r_Af']
 
         # 未処理負荷の計算
-        Q_UT_H_d_t = racfh.calc_Q_UT_H_d_t(region, A_HCZ, r_Af, L_H_d_t)
+        Q_UT_H_d_t = racfh.calc_Q_UT_H_d_t(region, A_HCZ, r_Af, L_H_d_t, device['input_C_af_H'])
 
     else:
         raise ValueError(device['type'])
@@ -751,6 +752,7 @@ def calc_E_E_H_d_t(i, device, A_A, A_MR, A_OR, region, mode, L_H_d_t):
             e_rtd_H=e_rtd_H,
             dualcompressor=device['dualcompressor'],
             L_H_d_t=L_H_d_t,
+            input_C_af_H=device['input_C_af_H'],
         )
 
     elif device['type'] == 'FF暖房機':
@@ -820,7 +822,8 @@ def calc_E_E_H_d_t(i, device, A_A, A_MR, A_OR, region, mode, L_H_d_t):
             r_Af=r_Af,
             r_up=r_up,
             pipe_insulation=pipe_insulation,
-            L_H_d_t=L_H_d_t
+            L_H_d_t=L_H_d_t,
+            input_C_af_H=device['input_C_af_H']
         )
 
     else:
@@ -2906,7 +2909,8 @@ def calc_E_E_C_hs_d_t_i(i, device, region, A_A, A_MR, A_OR, L_CS_d_t, L_CL_d_t):
             e_rtd_C=e_rtd_C,
             dualcompressor=device['dualcompressor'],
             L_CS_d_t=L_CS_d_t[i - 1],
-            L_CL_d_t=L_CL_d_t[i - 1]
+            L_CL_d_t=L_CL_d_t[i - 1],
+            input_C_af_C=device['input_C_af_C'],
         )
     else:
         raise ValueError(device['type'])

@@ -28,7 +28,7 @@ from pyhees.section11_1 import load_outdoor, get_Theta_ex, get_X_ex, calc_h_ex
 # ============================================================================
 
 # 最大暖房出力 (1)
-def calc_Q_max_H_d_t(region, Theta_SW_d_t, A_HCZ, r_Af):
+def calc_Q_max_H_d_t(region, Theta_SW_d_t, A_HCZ, r_Af, input_C_af_H):
     """最大暖房出力 (1)
 
     Args:
@@ -36,6 +36,7 @@ def calc_Q_max_H_d_t(region, Theta_SW_d_t, A_HCZ, r_Af):
       Theta_SW_d_t(ndarray): 往き温水温度 (℃)
       A_HCZ(float): ルームエアコンディショナー付温水床暖房を設置する暖冷房区画の面積 (m2)
       r_Af(flloat): 当該住戸における温水床暖房の敷設率 (-)
+      input_C_af_H(dict): 室内機吹き出し風量に関する暖房出力補正係数に関する入力
 
     Returns:
       ndarray: 最大暖房出力 (MJ/h)
@@ -45,7 +46,7 @@ def calc_Q_max_H_d_t(region, Theta_SW_d_t, A_HCZ, r_Af):
     Q_max_H_floor_d_t = calc_Q_max_H_floor_d_t(Theta_SW_d_t, A_HCZ, r_Af)
 
     # ルームエアコンディショナーの最大暖房出力 (MJ/h)
-    Q_max_H_RAC_d_t = calc_Q_max_H_RAC_d_t(region, A_HCZ)
+    Q_max_H_RAC_d_t = calc_Q_max_H_RAC_d_t(region, A_HCZ, input_C_af_H)
 
     # ルームエアコンディショナー付温水床暖房の最大暖房出力 (MJ/h)
     Q_max_H_d_t = Q_max_H_floor_d_t + Q_max_H_RAC_d_t
@@ -77,12 +78,13 @@ def calc_Q_max_H_floor_d_t(Theta_SW_d_t, A_HCZ, r_Af):
 
 
 # ルームエアコンディショナーの最大暖房出力
-def calc_Q_max_H_RAC_d_t(region, A_HCZ):
+def calc_Q_max_H_RAC_d_t(region, A_HCZ, input_C_af_H):
     """ルームエアコンディショナーの最大暖房出力
 
     Args:
       region(int): 省エネルギー地域区分
       A_HCZ(float): ルームエアコンディショナー付温水床暖房を設置する暖冷房区画の面積 (m2)
+      input_C_af_H(dict): 室内機吹き出し風量に関する暖房出力補正係数に関する入力
 
     Returns:
       ndarray: ルームエアコンディショナーの最大暖房出力
@@ -113,7 +115,7 @@ def calc_Q_max_H_RAC_d_t(region, A_HCZ):
     Q_r_max_H_d_t = rac.calc_Q_r_max_H_d_t(q_rtd_C, q_r_max_H, Theta_ex_d_t)
 
     # 最大暖房出力
-    Q_max_H_RAC_d_t = rac.calc_Q_max_H_d_t(Q_r_max_H_d_t, q_rtd_H, Theta_ex_d_t, h_ex)
+    Q_max_H_RAC_d_t = rac.calc_Q_max_H_d_t(Q_r_max_H_d_t, q_rtd_H, Theta_ex_d_t, h_ex, input_C_af_H)
 
     return Q_max_H_RAC_d_t
 
@@ -127,7 +129,7 @@ def calc_Q_max_H_RAC_d_t(region, A_HCZ):
 # ============================================================================
 
 # 1時間当たりの消費電力量 (2)
-def calc_E_E_d_t(region, A_A_act, i, A_HCZ, r_Af, r_up, pipe_insulation, L_H_d_t):
+def calc_E_E_d_t(region, A_A_act, i, A_HCZ, r_Af, r_up, pipe_insulation, L_H_d_t, input_C_af_H):
     """1時間当たりの消費電力量 (2)
 
     Args:
@@ -139,6 +141,7 @@ def calc_E_E_d_t(region, A_A_act, i, A_HCZ, r_Af, r_up, pipe_insulation, L_H_d_t
       r_up(float): 当該住戸の温水床暖房の上面放熱率
       pipe_insulation(bool): 配管断熱の有無
       L_H_d_t(ndarray): 暖冷房区画݅の１時間当たりの暖房負荷
+      input_C_af_H(dict): 室内機吹き出し風量に関する暖房出力補正係数に関する入力
 
     Returns:
       ndarray: 1時間当たりの消費電力量
@@ -148,7 +151,7 @@ def calc_E_E_d_t(region, A_A_act, i, A_HCZ, r_Af, r_up, pipe_insulation, L_H_d_t
     Theta_SW_d_t = get_Theta_SW_d_t()
 
     # 最大暖房出力
-    Q_max_H_d_t = calc_Q_max_H_d_t(region, Theta_SW_d_t, A_HCZ, r_Af)
+    Q_max_H_d_t = calc_Q_max_H_d_t(region, Theta_SW_d_t, A_HCZ, r_Af, input_C_af_H)
 
     # 処理暖房負荷
     Q_T_H_d_t = get_Q_T_H_d_t_i(Q_max_H_d_t, L_H_d_t)
@@ -159,7 +162,7 @@ def calc_E_E_d_t(region, A_A_act, i, A_HCZ, r_Af, r_up, pipe_insulation, L_H_d_t
     return E_E_hs_d_t
 
 
-def calc_Q_UT_H_d_t(region, A_HCZ, r_Af, L_H_d_t):
+def calc_Q_UT_H_d_t(region, A_HCZ, r_Af, L_H_d_t, input_C_af_H):
     """未処理暖房負荷
 
     Args:
@@ -167,6 +170,7 @@ def calc_Q_UT_H_d_t(region, A_HCZ, r_Af, L_H_d_t):
       A_HCZ(float): ルームエアコンディショナー付温水床暖房を設置する暖冷房区画の面積 (m2)
       r_Af(float): 当該住戸における温水床暖房の敷設率 (-)
       L_H_d_t(ndarray): 暖冷房区画݅の１時間当たりの暖房負荷
+      input_C_af_H(dict): 室内機吹き出し風量に関する暖房出力補正係数に関する入力
 
     Returns:
       ndarray: 未処理暖房負荷
@@ -176,7 +180,7 @@ def calc_Q_UT_H_d_t(region, A_HCZ, r_Af, L_H_d_t):
     Theta_SW_d_t = get_Theta_SW_d_t()
 
     # 最大暖房出力
-    Q_max_H_d_t = calc_Q_max_H_d_t(region, Theta_SW_d_t, A_HCZ, r_Af)
+    Q_max_H_d_t = calc_Q_max_H_d_t(region, Theta_SW_d_t, A_HCZ, r_Af, input_C_af_H)
 
     # 処理暖房負荷
     Q_T_H_d_t = get_Q_T_H_d_t_i(Q_max_H_d_t, L_H_d_t)
@@ -1120,7 +1124,7 @@ def get_Theta_SW_d_t():
 # ルームエアコンディショナーの冷房と同じ。
 
 # 消費電力量
-def calc_E_E_C_d_t(region, outdoor, q_rtd_C, e_rtd_C, L_CS_d_t, L_CL_d_t):
+def calc_E_E_C_d_t(region, outdoor, q_rtd_C, e_rtd_C, L_CS_d_t, L_CL_d_t, input_C_af_C):
     """消費電力量
     ルームエアコンディショナー付温水床暖房における冷房時のエネルギー所肥料及び最大冷房出力については、
     ルームエアコンディショナーの冷房と同じ。
@@ -1132,9 +1136,10 @@ def calc_E_E_C_d_t(region, outdoor, q_rtd_C, e_rtd_C, L_CS_d_t, L_CL_d_t):
       e_rtd_C(float): 定格冷房エネルギー消費効率
       L_CS_d_t(ndarray): 暖冷房区画の 1 時間当たりの冷房顕熱負荷
       L_CL_d_t(ndarray): 暖冷房区画の 1 時間当たりの冷房潜熱負荷
+      input_C_af_C(dict): 室内機吹き出し風量に関する冷房出力補正係数に関する入力
 
     Returns:
       ndarray: 消費電力量
 
     """
-    return rac.calc_E_E_C_d_t(region, outdoor, q_rtd_C, e_rtd_C, L_CS_d_t, L_CL_d_t)
+    return rac.calc_E_E_C_d_t(region, outdoor, q_rtd_C, e_rtd_C, L_CS_d_t, L_CL_d_t, input_C_af_C)

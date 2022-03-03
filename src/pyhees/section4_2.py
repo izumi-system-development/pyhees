@@ -34,7 +34,7 @@ from pyhees.section11_3 import \
     load_schedule, \
     get_schedule_ac
 
-import calculation_constants as constants
+import jjj_experiment.constants as constants
 
 # 未処理負荷と機器の計算に必要な変数を取得
 def calc_Q_UT_A(A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs_dsgn_H, V_hs_dsgn_C, Q,
