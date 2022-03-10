@@ -29,7 +29,7 @@ import pyhees.section3_1_e as uf
 import pyhees.section3_1 as ld
 from pyhees.section3_2 import calc_r_env, get_Q_dash, get_eta_H, get_eta_C
 from pyhees.section3_2_8 import get_r_env
-from pyhees.section11_1 import calc_h_ex
+from pyhees.section11_1 import calc_h_ex, load_climate, load_outdoor, get_Theta_ex, get_X_ex
 
 # 日付dの時刻tにおける1時間当たりの暖房時の消費電力量（kWh/h）(1)
 def calc_CRAC_E_E_H_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, V_hs_supply_d_t, V_hs_vent_d_t, C_df_H_d_t,
@@ -79,15 +79,16 @@ def get_q_hs_C_d_t_2(Theta_hs_out_d_t, Theta_hs_in_d_t, X_hs_out_d_t, X_hs_in_d_
     return q_hs_CS_d_t, q_hs_CL_d_t
 
 def get_CRAC_E_E_C_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t,  X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, V_hs_vent_d_t,
-                  q_rtd_C, e_rtd_C, V_hs_dsgn_C, P_fan_rtd_C, region, dualcompressor_C):
+                  q_rtd_C, e_rtd_C, V_hs_dsgn_C, P_fan_rtd_C, region, dualcompressor_C, outdoorFile):
 
     # 外気条件
-    #outdoor = load_outdoor()
-    outdoor = pd.read_csv('calc-experiment/outdoor_mitaka.csv', skiprows=4, nrows=24 * 365, names=(
-    'day', 'hour', 'holiday', 'Theta_ex_1', 'X_ex_1'))
-
-    #Theta_ex_d_t = get_Theta_ex(region, outdoor)
-    Theta_ex_d_t = outdoor['Theta_ex_1'].values
+    if outdoorFile == '-':
+        outdoor = load_outdoor()
+        Theta_ex_d_t = get_Theta_ex(region, outdoor)
+    else:
+        outdoor = pd.read_csv('calc-experiment/outdoor_mitaka.csv', skiprows=4, nrows=24 * 365, names=(
+            'day', 'hour', 'holiday', 'Theta_ex_1', 'X_ex_1'))
+        Theta_ex_d_t = outdoor['Theta_ex_1'].values
 
     # (4)
     q_hs_CS_d_t, q_hs_CL_d_t = get_q_hs_C_d_t_2(Theta_hs_out_d_t, Theta_hs_in_d_t, X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, region)
@@ -104,22 +105,25 @@ def get_CRAC_E_E_C_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t,  X_hs_out_d_t, X_hs_in
 
 # 未処理負荷と機器の計算に必要な変数を取得
 def calc_CRAC_Q_UT_A(A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_rtd_C, q_rtd_H, q_max_C, q_max_H, V_hs_dsgn_H, V_hs_dsgn_C, Q,
-             VAV, general_ventilation, duct_insulation, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i):
+             VAV, general_ventilation, duct_insulation, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i,
+             climateFile, outdoorFile):
 
     # 外気条件
-    #outdoor = load_outdoor()
+    if outdoorFile == '-':
+        outdoor = load_outdoor()
+        Theta_ex_d_t = get_Theta_ex(region, outdoor)
+        X_ex_d_t = get_X_ex(region, outdoor)
+    else:
+        outdoor = pd.read_csv(outdoorFile, skiprows=4, nrows=24 * 365,
+            names=('day', 'hour', 'holiday', 'Theta_ex_1', 'X_ex_1'))
+        Theta_ex_d_t = outdoor['Theta_ex_1'].values
+        X_ex_d_t = outdoor['X_ex_1'].values
 
-    outdoor = pd.read_csv('calc-experiment/outdoor_mitaka.csv', skiprows=4, nrows=24 * 365, names=(
-    'day', 'hour', 'holiday', 'Theta_ex_1', 'X_ex_1'))
+    if climateFile == '-':
+        climate = load_climate(region)
+    else:
+        climate = pd.read_csv(climateFile, nrows=24 * 365)
 
-    #Theta_ex_d_t = get_Theta_ex(region, outdoor)
-    #X_ex_d_t = get_X_ex(region, outdoor)
-    Theta_ex_d_t = outdoor['Theta_ex_1'].values
-    X_ex_d_t = outdoor['X_ex_1'].values
-
-    #climate = load_climate(region)
-    climate = pd.read_csv('calc-experiment/climateData_6_mitaka.csv', nrows=24 * 365)
-    
     #J_d_t = get_J(climate)
     J_d_t = climate["水平面天空日射量 [W/m2]"].values
     h_ex_d_t = calc_h_ex(X_ex_d_t, Theta_ex_d_t)
@@ -508,8 +512,6 @@ def get_heating(input: dict):
     elif input['H_A']['duct_insulation'] == '2':
         H_A['duct_insulation'] = '全て断熱区画内である'
     else:
-        import pprint
-        pprint.pprint(input['H_A']['duct_insulation'])
         raise Exception('ダクトが通過する空間の入力が不正です。')
 
     # 機器の仕様の入力
@@ -637,6 +639,13 @@ def get_solarheat():
 
 # ---------- 計算条件の取得 ----------
 
+# 引数が2つ与えられた場合、気象データと外気データを読み込む
+if len(sys.argv) >= 3:
+    climateFile = sys.argv[1]
+    outdoorFile = sys.argv[2]
+else:
+    climateFile = '-'
+    outdoorFile = '-'
 
 # JSONの読み込み
 rawInput = sys.stdin.read(-1)
@@ -739,7 +748,7 @@ Q_UT_H_d_t_i: np.ndarray
 _, Q_UT_H_d_t_i, _, _, Theta_hs_out_d_t, Theta_hs_in_d_t, _, _, V_hs_supply_d_t, V_hs_vent_d_t, C_df_H_d_t\
  = calc_CRAC_Q_UT_A(A_A, A_MR, A_OR, ENV['A_env'], mu_H, mu_C,
                     q_rtd_C, q_rtd_H, q_max_C, q_max_H, V_hs_dsgn_H, V_hs_dsgn_C, Q, H_A['VAV'], H_A['general_ventilation'],
-                    H_A['duct_insulation'], region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i)
+                    H_A['duct_insulation'], region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i, climateFile, outdoorFile)
 
 E_E_H_d_t: np.ndarray = calc_CRAC_E_E_H_d_t(
     Theta_hs_out_d_t = Theta_hs_out_d_t,
@@ -780,7 +789,7 @@ E_C_UT_d_t: np.ndarray
 E_C_UT_d_t, _, _, _, Theta_hs_out_d_t, Theta_hs_in_d_t, X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, V_hs_vent_d_t, _\
 = calc_CRAC_Q_UT_A(A_A, A_MR, A_OR, ENV['A_env'], mu_H, mu_C, 
                    q_rtd_C, q_rtd_H, q_max_C, q_max_H, V_hs_dsgn_H, V_hs_dsgn_C, Q, C_A['VAV'], C_A['general_ventilation'],
-                   C_A['duct_insulation'], region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i)
+                   C_A['duct_insulation'], region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i, climateFile, outdoorFile)
 
 E_E_C_d_t = get_CRAC_E_E_C_d_t(
     Theta_hs_out_d_t = Theta_hs_out_d_t,
@@ -794,7 +803,8 @@ E_E_C_d_t = get_CRAC_E_E_C_d_t(
     V_hs_dsgn_C = V_hs_dsgn_C,
     P_fan_rtd_C = P_fan_rtd_C,
     region = region,
-    dualcompressor_C = dualcompressor_C)
+    dualcompressor_C = dualcompressor_C,
+    outdoorFile = outdoorFile)
 """日付dの時刻tにおける1時間当たりの冷房時の消費電力量(kWh/h)"""
 
 ##### 計算結果のまとめ
