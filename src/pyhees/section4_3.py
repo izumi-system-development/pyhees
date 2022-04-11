@@ -155,7 +155,7 @@ def get_C_af_H(input_C_af_H):
       float: 室内機吹き出し風量に関する暖房時の能力補正係
 
     """
-    if input_C_af_H['input_mode'] == '1':
+    if int(input_C_af_H['input_mode']) == 1:
       if not input_C_af_H['dedicated_chamber'] and not input_C_af_H['fixed_fin_direction']:
         return 0.800
       elif input_C_af_H['dedicated_chamber'] and not input_C_af_H['fixed_fin_direction']:
@@ -764,7 +764,7 @@ def get_C_af_C(input_C_af_C):
       float: 室内機吹き出し風量に関する冷房時の能力補正係数
 
     """
-    if input_C_af_C['input_mode'] == '1':
+    if int(input_C_af_C['input_mode']) == 1:
       if not input_C_af_C['dedicated_chamber'] and not input_C_af_C['fixed_fin_direction']:
         return 0.850
       elif input_C_af_C['dedicated_chamber'] and not input_C_af_C['fixed_fin_direction']:
