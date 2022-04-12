@@ -128,6 +128,7 @@ elif H_A['type'] == 'ルームエアコンディショナ活用型全館空調�
         V_hs_dsgn_H = dc_spec.get_V_fan_dsgn_C(V_rac_fan_rtd_H)
 else: 
     raise Exception("暖房方式が不正です。")
+"""暖房時の送風機の設計風量(m3/h)"""
 
 P_rac_fan_rtd_H: float = dc_spec.get_P_fan_rtd_H(V_rac_fan_rtd_H)
 """定格暖房能力運転時の送風機の消費電力(W)"""
