@@ -38,8 +38,8 @@ else:
     outdoorFile = '-'
 
 # JSONの読み込み
-rawInput = sys.stdin.read(-1)
-input = json.loads(rawInput)
+    rawInput = sys.stdin.read(-1)
+    input = json.loads(rawInput)
 
 # 計算時の定数を取得
 jjj_experiment.constants.set_constants(input)
@@ -119,12 +119,15 @@ L_CL_d_t: np.ndarray = np.sum(L_CL_d_t_i, axis=0)
 V_rac_fan_rtd_H: float = dc_spec.get_V_fan_rtd_H(q_rtd_H)
 """定格暖房能力運転時の送風機の風量(m3/h)"""
 
-V_hs_dsgn_H: float
-"""暖房時の送風機の設計風量(m3/h)"""
-if 'V_hs_dsgn_H' in H_A:
-    V_hs_dsgn_H = H_A['V_hs_dsgn_H']
-else:
-    V_hs_dsgn_H = dc_spec.get_V_fan_dsgn_H(V_rac_fan_rtd_H)
+if H_A['type'] == 'ダクト式セントラル空調機':
+    if 'V_hs_dsgn_H' in H_A:
+        V_hs_dsgn_H = H_A['V_hs_dsgn_H']
+    else:
+        V_hs_dsgn_H = dc_spec.get_V_fan_dsgn_C(H_A['V_fan_rtd_H'])
+elif H_A['type'] == 'ルームエアコンディショナ活用型全館空調システム':
+        V_hs_dsgn_H = dc_spec.get_V_fan_dsgn_C(V_rac_fan_rtd_H)
+else: 
+    raise Exception("暖房方式が不正です。")
 
 P_rac_fan_rtd_H: float = dc_spec.get_P_fan_rtd_H(V_rac_fan_rtd_H)
 """定格暖房能力運転時の送風機の消費電力(W)"""
@@ -189,12 +192,16 @@ E_UT_H_d_t: np.ndarray = Q_UT_H_A_d_t * alpha_UT_H_A
 V_fan_rtd_C: float = dc_spec.get_V_fan_rtd_C(q_rtd_C)
 """定格冷房能力運転時の送風機の風量(m3/h)"""
 
-V_hs_dsgn_C: float
-"""冷房時の送風機の設計風量(m3/h)"""
-if 'V_hs_dsgn_C' in C_A:
-    V_hs_dsgn_C = C_A['V_hs_dsgn_C']
-else:
+if C_A['type'] == 'ダクト式セントラル空調機':
+    if 'V_hs_dsgn_C' in C_A:
+        V_hs_dsgn_C = C_A['V_hs_dsgn_C']
+    else:
+        V_hs_dsgn_C = dc_spec.get_V_fan_dsgn_C(C_A['V_fan_rtd_C'])
+elif C_A['type'] == 'ルームエアコンディショナ活用型全館空調システム':
     V_hs_dsgn_C = dc_spec.get_V_fan_dsgn_C(V_fan_rtd_C)
+else: 
+    raise Exception("冷房方式が不正です。")
+"""冷房時の送風機の設計風量(m3/h)"""
 
 P_rac_fan_rtd_C: float = dc_spec.get_P_fan_rtd_C(V_fan_rtd_C)
 """定格冷房能力運転時の送風機の消費電力(W)"""
