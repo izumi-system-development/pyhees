@@ -38,8 +38,8 @@ else:
     outdoorFile = '-'
 
 # JSONの読み込み
-    rawInput = sys.stdin.read(-1)
-    input = json.loads(rawInput)
+rawInput = sys.stdin.read(-1)
+input = json.loads(rawInput)
 
 # 計算時の定数を取得
 jjj_experiment.constants.set_constants(input)
