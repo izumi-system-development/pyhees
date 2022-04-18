@@ -18,7 +18,7 @@ import pyhees.section4_2_b as dc_spec
 
 # 床下
 import pyhees.section3_1 as ld
-from pyhees.section3_2 import calc_r_env, get_Q_dash, get_eta_H, get_eta_C
+from pyhees.section3_2 import calc_r_env, get_Q_dash, get_mu_H, get_mu_C
 
 import jjj_experiment.calc
 import jjj_experiment.constants
@@ -81,8 +81,8 @@ Q_dash = get_Q_dash(ENV['U_A'], r_env)
 Q = ld.get_Q(Q_dash)
 
 # 日射取得係数の取得
-mu_H = get_eta_H(ENV['eta_A_H'], r_env)
-mu_C = get_eta_C(ENV['eta_A_C'], r_env)
+mu_H = get_mu_H(ENV['eta_A_H'], r_env)
+mu_C = get_mu_C(ENV['eta_A_C'], r_env)
 
 # 実質的な暖房機器の仕様を取得
 spec_MR, spec_OR = get_virtual_heating_devices(region, H_MR, H_OR)
