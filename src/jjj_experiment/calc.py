@@ -441,7 +441,7 @@ def calc_E_E_H_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t, V_hs_supply_
     else:
         raise Exception('暖房設備機器の種類の入力が不正です。')
 
-    return E_E_H_d_t
+    return E_E_H_d_t, q_hs_H_d_t, E_E_fan_H_d_t
 
 def get_q_hs_C_d_t_2(Theta_hs_out_d_t, Theta_hs_in_d_t, X_hs_out_d_t, X_hs_in_d_t,V_hs_supply_d_t, region):
     """(4a-1)(4b-1)(4c-1)(4a-2)(4b-2)(4c-2)(4a-3)(4b-3)(4c-3)
@@ -527,4 +527,4 @@ def get_E_E_C_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t, X_hs_out_d_t,
     else:
         raise Exception('冷房設備機器の種類の入力が不正です。')
 
-    return E_E_C_d_t
+    return E_E_C_d_t, E_E_fan_C_d_t, q_hs_CS_d_t, q_hs_CL_d_t

@@ -153,7 +153,7 @@ _, Q_UT_H_d_t_i, _, _, Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t, _, _, V_
 E_E_H_d_t: np.ndarray
 """日付dの時刻tにおける1時間当たりの暖房時の消費電力量(kWh/h)"""
 
-E_E_H_d_t: np.ndarray = jjj_experiment.calc.calc_E_E_H_d_t(
+E_E_H_d_t, q_hs_H_d_t, E_E_fan_H_d_t = jjj_experiment.calc.calc_E_E_H_d_t(
     Theta_hs_out_d_t = Theta_hs_out_d_t,
     Theta_hs_in_d_t = Theta_hs_in_d_t,
     Theta_ex_d_t = Theta_ex_d_t,
@@ -224,7 +224,7 @@ E_C_UT_d_t, _, _, _, Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t, X_hs_out_d
         C_A['type'], input_C_af_H, input_C_af_C,
         underfloor_insulation, underfloor_air_conditioning_air_supply, YUCACO_r_A_ufvnt, climateFile, outdoorFile)
 
-E_E_C_d_t = jjj_experiment.calc.get_E_E_C_d_t(
+E_E_C_d_t, E_E_fan_C_d_t, q_hs_CS_d_t, q_hs_CL_d_t = jjj_experiment.calc.get_E_E_C_d_t(
     Theta_hs_out_d_t = Theta_hs_out_d_t,
     Theta_hs_in_d_t = Theta_hs_in_d_t,
     Theta_ex_d_t = Theta_ex_d_t,
@@ -290,4 +290,11 @@ print(json.dumps({
     'L_H_d_t': L_H_d_t.tolist(),
     'L_CS_d_t': L_CS_d_t.tolist(),
     'L_CL_d_t': L_CL_d_t.tolist(),
+
+    # エネルギー消費量計算の中間変数
+    'E_E_fan_C_d_t': E_E_fan_C_d_t.tolist(),
+    'q_hs_CS_d_t': q_hs_CS_d_t.tolist(),
+    'q_hs_CL_d_t': q_hs_CL_d_t.tolist(),
+    'E_E_fan_H_d_t': E_E_fan_H_d_t.tolist(),
+    'q_hs_H_d_t': q_hs_H_d_t.tolist(),
     }))
