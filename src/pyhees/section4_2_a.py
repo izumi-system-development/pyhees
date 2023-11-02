@@ -1298,9 +1298,10 @@ def get_alpha_c_hex_H(type, V_fan_x_H, q_hs_rtd_C):
       暖房時の室内熱交換器表面の顕熱伝達率（W/(m2・K)）
 
     """
-    # 表5より
-    V_hs_supply = V_fan_x_H
+    # 熱源機の風量 (m3/h)
+    V_hs_supply = V_fan_x_H  # 表5より
 
+    # 室内機熱交換器の全面面積のうち熱交換に有効な面積 (m2)
     A_f_hex = get_A_f_hex(type, q_hs_rtd_C)
 
     alpha_c_hex_H = (-0.0017 * ((V_hs_supply / 3600) / A_f_hex) ** 2 \
@@ -1321,15 +1322,17 @@ def get_alpha_c_hex_C(type, V_fan_x_C, X_hs_in, q_hs_rtd_C):
       冷房時の室内熱交換器表面の顕熱伝達率（W/(m2・K)）および 冷房時の室内熱交換器表面の潜熱伝達率（kg/(m2・s)）
 
     """
-    # TODO: q_hs_rtd_C 単位表記あっているかチェックする
-    # 表5より
-    V_hs_supply = V_fan_x_C
+    # 熱源機の風量 (m3/h)
+    V_hs_supply = V_fan_x_C  # 表5より
 
+    # 室内機熱交換器の全面面積のうち熱交換に有効な面積 (m2)
     A_f_hex = get_A_f_hex(type, q_hs_rtd_C)
-    c_p_air = get_c_p_air()
-    c_p_w = get_c_p_w()
 
-     #400→360
+    # 空気の比熱 (J/(kg・K))
+    c_p_air = get_c_p_air()
+
+    # 水蒸気の比熱 (J/(kg・K))
+    c_p_w = get_c_p_w()
 
     # (36b) 熱伝達特性
     if type == constants.PROCESS_TYPE_3:  # ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）_熱伝達特性
