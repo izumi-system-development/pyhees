@@ -216,23 +216,17 @@ def get_V_fan_rtd_H(q_hs_rtd_H):
     """
     return (1.69 * q_hs_rtd_H * 10 ** (-3) + 14.5) * 60
 
-def get_P_fan_rtd_H(type, V_fan_rtd_H, q_hs_H_d_t):
+def get_P_fan_rtd_H(V_fan_rtd_H):
     """(10) ファン消費電力
 
     Args:
-      type: 暖房設備機器の種類
       V_fan_rtd_H: 定格暖房能力運転時の送風機の風量（m3/h）
-      q_hs_H_d_t: 日付dの時刻tにおける1時間当たりの熱源機の平均暖房能力（W）
 
     Returns:
       定格暖房能力運転時の送風機の消費電力（W）
 
     """
-    if type == constants.PROCESS_TYPE_3:  # ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）
-        x = q_hs_H_d_t / 1000  # WARNING: 例外的に四次式では kW 単位で計算しています
-        return constants.P_fan_H_d_t_a4 * x**4 + constants.P_fan_H_d_t_a3 * x**3 + constants.P_fan_H_d_t_a2 * x**2 + constants.P_fan_H_d_t_a1 * x + constants.P_fan_H_d_t_a0
-    else:
-        return 8.0 * (V_fan_rtd_H / 60) + 20.7
+    return 8.0 * (V_fan_rtd_H / 60) + 20.7
 
 
 def get_V_fan_rtd_C(q_hs_rtd_C):
@@ -248,23 +242,17 @@ def get_V_fan_rtd_C(q_hs_rtd_C):
     return (1.69 * q_hs_rtd_C * 10 ** (-3) + 14.5) * 60
 
 
-def get_P_fan_rtd_C(type, V_fan_rtd_C, q_hs_C_d_t):
+def get_P_fan_rtd_C(V_fan_rtd_C):
     """(12) ファン消費電力
 
     Args:
-      type: 暖房設備機器の種類
       V_fan_rtd_C: 定格冷房能力運転時の送風機の風量（m3/h）
-      q_hs_C_d_t: 日付dの時刻tにおける1時間当たりの熱源機の平均冷房能力（W）
 
     Returns:
       定格冷房能力運転時の送風機の消費電力（W）
 
     """
-    if type == constants.PROCESS_TYPE_3:  # ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）
-      x = q_hs_C_d_t / 1000 # WARNING: 例外的に四次式では kW 単位で計算しています
-      return constants.P_fan_C_d_t_a4 * x**4 + constants.P_fan_C_d_t_a3 * x**3 + constants.P_fan_C_d_t_a2 * x**2 + constants.P_fan_C_d_t_a1 * x + constants.P_fan_C_d_t_a0
-    else:
-      return 8.0 * (V_fan_rtd_C / 60) + 20.7
+    return 8.0 * (V_fan_rtd_C / 60) + 20.7
 
 
 # ============================================================================

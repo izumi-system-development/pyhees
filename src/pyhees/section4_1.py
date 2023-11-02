@@ -1640,7 +1640,7 @@ def calc_E_E_H_hs_A_d_t(type,A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, H_A, L_H_d_t
         P_hs_rtd_H = dc_spec.get_P_hs_rtd_H(q_hs_rtd_H)
         V_fan_rtd_H = dc_spec.get_V_fan_rtd_H(q_hs_rtd_H)
         V_fan_mid_H = dc_spec. get_V_fan_mid_H(q_hs_mid_H)
-        P_fan_rtd_H = dc_spec.get_P_fan_rtd_H(type, V_fan_rtd_H,q_hs_H_d_t)
+        P_fan_rtd_H = dc_spec.get_P_fan_rtd_H(V_fan_rtd_H)
         P_fan_mid_H = dc_spec.get_P_fan_mid_H(V_fan_mid_H)
         P_hs_mid_H = np.NAN
     elif H_A['EquipmentSpec'] == '定格能力試験の値を入力する':
@@ -2697,7 +2697,7 @@ def calc_E_E_C_hs_d_t(type, region, A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, C_A, 
             P_hs_rtd_C = dc_spec.get_P_hs_rtd_C(q_hs_rtd_C)
             V_fan_rtd_C = dc_spec.get_V_fan_rtd_C(q_hs_rtd_C)
             V_fan_mid_C = dc_spec.get_V_fan_mid_C(q_hs_mid_C)
-            P_fan_rtd_C = dc_spec.get_P_fan_rtd_C(type, V_fan_rtd_C, q_hs_C_d_t)
+            P_fan_rtd_C = dc_spec.get_P_fan_rtd_C(V_fan_rtd_C)
             P_fan_mid_C = dc_spec.get_P_fan_mid_C(V_fan_mid_C)
             P_hs_mid_C = np.NAN
         elif C_A['EquipmentSpec'] == '定格能力試験の値を入力する':
