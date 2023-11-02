@@ -3,6 +3,8 @@
 # 付録 B 機器の性能を表す仕様の決定方法
 # ============================================================================
 
+import jjjexperiment.constants as constants
+
 # ============================================================================
 # B.2 熱源機
 # ============================================================================
@@ -226,7 +228,7 @@ def get_P_fan_rtd_H(type, V_fan_rtd_H, q_hs_H_d_t):
       定格暖房能力運転時の送風機の消費電力（W）
 
     """
-    if type == 'ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）':
+    if type == constants.PROCESS_TYPE_3:  # ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）
       x = q_hs_H_d_t / 1000
       return constants.P_fan_H_d_t_a4 * x**4 + constants.P_fan_H_d_t_a3 * x**3 + constants.P_fan_H_d_t_a2 * x**2 + constants.P_fan_H_d_t_a1 * x + constants.P_fan_H_d_t_a0
     else:
@@ -259,7 +261,7 @@ def get_P_fan_rtd_C(type, V_fan_rtd_C, q_hs_C_d_t):
       定格冷房能力運転時の送風機の消費電力（W）
 
     """
-    if type == 'ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）':
+    if type == constants.PROCESS_TYPE_3:  # ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）
       x = q_hs_C_d_t / 1000
       return constants.P_fan_C_d_t_a4 * x**4 + constants.P_fan_C_d_t_a3 * x**3 + constants.P_fan_C_d_t_a2 * x**2 + constants.P_fan_C_d_t_a1 * x + constants.P_fan_C_d_t_a0
     else:

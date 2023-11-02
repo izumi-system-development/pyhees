@@ -47,6 +47,8 @@ import numpy as np
 
 from scipy import optimize
 
+import jjjexperiment.constants as constants
+
 # ============================================================================
 # A.2 消費電力量
 # ============================================================================
@@ -100,13 +102,13 @@ def calc_E_E_H_d_t(type, Theta_hs_out_d_t, Theta_hs_in_d_t, V_hs_supply_d_t, V_h
     E_E_fan_H_d_t = get_E_E_fan_H_d_t(P_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t)
 
     # (20)
-    e_th_mid_H = calc_e_th_mid_H(type,V_fan_mid_H, q_hs_mid_H, q_hs_rtd_C)
+    e_th_mid_H = calc_e_th_mid_H(type, V_fan_mid_H, q_hs_mid_H, q_hs_rtd_C)
 
     # (19)
-    e_th_rtd_H = calc_e_th_rtd_H(type,V_fan_rtd_H, q_hs_rtd_H, q_hs_rtd_C)
+    e_th_rtd_H = calc_e_th_rtd_H(type, V_fan_rtd_H, q_hs_rtd_H, q_hs_rtd_C)
 
     # (17)
-    e_th_H_d_t = calc_e_th_H_d_t(type,Theta_ex_d_t, Theta_hs_in_d_t, Theta_hs_out_d_t, V_hs_supply_d_t,q_hs_rtd_C)
+    e_th_H_d_t = calc_e_th_H_d_t(type, Theta_ex_d_t, Theta_hs_in_d_t, Theta_hs_out_d_t, V_hs_supply_d_t,q_hs_rtd_C)
 
     # (11)
     e_r_rtd_H = get_e_r_rtd_H(e_th_rtd_H, q_hs_rtd_H, P_hs_rtd_H, P_fan_rtd_H)
@@ -180,7 +182,7 @@ def get_E_E_C_d_t(type, Theta_hs_out_d_t, Theta_hs_in_d_t,  X_hs_out_d_t, X_hs_i
     e_th_rtd_C = calc_e_th_rtd_C(type, V_fan_rtd_C, q_hs_rtd_C)
 
     # (18)
-    e_th_C_d_t = calc_e_th_C_d_t(type,Theta_ex_d_t, Theta_hs_in_d_t, X_hs_in_d_t, Theta_hs_out_d_t, V_hs_supply_d_t,q_hs_rtd_C)
+    e_th_C_d_t = calc_e_th_C_d_t(type, Theta_ex_d_t, Theta_hs_in_d_t, X_hs_in_d_t, Theta_hs_out_d_t, V_hs_supply_d_t,q_hs_rtd_C)
 
     # (12)
     e_r_rtd_C = get_e_r_rtd_C(e_th_rtd_C, q_hs_rtd_C, P_hs_rtd_C, P_fan_rtd_C)
@@ -718,7 +720,7 @@ def calc_e_th_C_d_t(type, Theta_ex_d_t, Theta_hs_in_d_t, X_hs_in_d_t, Theta_hs_o
     Theta_sur_f_hex_C = np.zeros(24 * 365)
     for i in range(24 * 365):
         # (36)
-        alpha_c_hex_C, alpha_dash_c_hex_C = get_alpha_c_hex_C(type,V_hs_supply_d_t[i], X_hs_in_d_t[i], q_hs_rtd_C)
+        alpha_c_hex_C, alpha_dash_c_hex_C = get_alpha_c_hex_C(type, V_hs_supply_d_t[i], X_hs_in_d_t[i], q_hs_rtd_C)
 
         # (32)
         Theta_sur_f_hex_C[i] = get_Theta_sur_f_hex_C_calc(type, Theta_hs_in_d_t[i], Theta_hs_out_d_t[i], V_hs_supply_d_t[i],
@@ -771,7 +773,7 @@ def calc_e_th_rtd_H(type, V_fan_rtd_H, q_hs_rtd_H, q_hs_rtd_C):
     Theta_ref_cnd_H = get_Theta_ref_cnd_H(Theta_sur_f_hex_H)
 
     # (24)
-    Theta_ref_evp_H = get_Theta_ref_evp_H(7, Theta_ref_cnd_H)
+    Theta_ref_evp_H = get_Theta_ref_evp_H(7, Theta_ref_cnd_H)  # CHECK: magic number
 
      # (25)
     Theta_ref_SC_H = get_Theta_ref_SC_H(Theta_ref_cnd_H)
@@ -1102,7 +1104,7 @@ def get_Theta_sur_f_hex_H_calc(type, Theta_hs_in, Theta_hs_out, V_hs_supply, alp
     """
     c_p_air = get_c_p_air()
     rho_air = get_rho_air()
-    A_e_hex = get_A_e_hex(type,q_hs_rtd_C)
+    A_e_hex = get_A_e_hex(type, q_hs_rtd_C)
 
     Theta_sur_f_hex_H = ((Theta_hs_in + Theta_hs_out) / 2) \
                         + (c_p_air * rho_air * V_hs_supply * (Theta_hs_out - Theta_hs_in) / 3600) / (A_e_hex * alpha_c_hex_H)
@@ -1166,7 +1168,7 @@ def get_Theta_sur_f_hex_H_JIS(type, V_fan_x_H, q_hs_X_H, alpha_c_hex_H, q_hs_rtd
 
     return Theta_sur_f_hex_H_JIS
 
-def calc_Theta_sur_f_hex_C_JIS(type,Theta_surf_hex_C, V_fan_x_C, alpha_c_hex_C, alpha_dash_c_hex_C, q_hs_rtd_C):
+def calc_Theta_sur_f_hex_C_JIS(type, Theta_surf_hex_C, V_fan_x_C, alpha_c_hex_C, alpha_dash_c_hex_C, q_hs_rtd_C):
     """(34a)
 
     Args:
@@ -1299,7 +1301,7 @@ def get_alpha_c_hex_H(type, V_fan_x_H, q_hs_rtd_C):
     # 表5より
     V_hs_supply = V_fan_x_H
 
-    A_f_hex = get_A_f_hex(type,q_hs_rtd_C)
+    A_f_hex = get_A_f_hex(type, q_hs_rtd_C)
 
     alpha_c_hex_H = (-0.0017 * ((V_hs_supply / 3600) / A_f_hex) ** 2 \
                      + 0.044 * ((V_hs_supply / 3600) / A_f_hex) + 0.0271) * 10 ** 3
@@ -1330,7 +1332,7 @@ def get_alpha_c_hex_C(type, V_fan_x_C, X_hs_in, q_hs_rtd_C):
      #400→360
 
     # (36b) 熱伝達特性
-    if (type == 3):  #ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）_熱伝達特性
+    if type == constants.PROCESS_TYPE_3:  # ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）_熱伝達特性
       a = np.clip(V_hs_supply, 360, None)
       alpha_dash_c_hex_C = constants.a_c_hex_c_a4_C * (a / 3000) **4 + \
           constants.a_c_hex_c_a3_C * (a / 3000) **3 + constants.a_c_hex_c_a2_C * (a / 3000) **2 + \
@@ -1351,7 +1353,7 @@ def get_alpha_c_hex_C(type, V_fan_x_C, X_hs_in, q_hs_rtd_C):
 # 室内機熱交換器の全面面積のうち熱交換に有効な面積 (m2)
 # コイル特性
 def get_A_f_hex(type, q_hs_rtd_C):
-    if type == 'ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）':
+    if type == constants.PROCESS_TYPE_3:  # ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）
       if q_hs_rtd_C < 5600:
         return constants.A_f_hex_small_H
       else:
@@ -1361,7 +1363,7 @@ def get_A_f_hex(type, q_hs_rtd_C):
 
 # 室内機熱交換器の表面積のうち熱交換に有効な面積 (m2)
 def get_A_e_hex(type, q_hs_rtd_C):
-    if type == 'ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）':
+    if type == constants.PROCESS_TYPE_3:  # ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）
       constants.A_e_hex_large_H = 3
       if q_hs_rtd_C < 5600:
         return constants.A_e_hex_small_H
@@ -1369,7 +1371,6 @@ def get_A_e_hex(type, q_hs_rtd_C):
         return constants.A_e_hex_large_H
     else:
       return 6.396
-# TODO: type は constatnts に統一する
 
 
 # ============================================================================
