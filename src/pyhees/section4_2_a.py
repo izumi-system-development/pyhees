@@ -56,12 +56,13 @@ from scipy import optimize
 # ============================================================================
 
 # 日付dの時刻tにおける1時間当たりの暖房時の消費電力量（kWh/h）(1)
-def calc_E_E_H_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, V_hs_supply_d_t, V_hs_vent_d_t, C_df_H_d_t,
-           q_hs_rtd_H, V_hs_dsgn_H, P_hs_mid_H, P_hs_rtd_H, P_fan_rtd_H, P_fan_mid_H, q_hs_min_H, q_hs_mid_H,
+def calc_E_E_H_d_t(type, Theta_hs_out_d_t, Theta_hs_in_d_t, V_hs_supply_d_t, V_hs_vent_d_t, C_df_H_d_t,
+           q_hs_rtd_H, q_hs_rtd_C, V_hs_dsgn_H, P_hs_mid_H, P_hs_rtd_H, P_fan_rtd_H, P_fan_mid_H, q_hs_min_H, q_hs_mid_H,
            V_fan_rtd_H, V_fan_mid_H, EquipmentSpec, region):
     """
 
     Args:
+      type: 暖房設備機器の種類
       Theta_hs_out_d_t: param Theta_hs_in_d_t:
       V_hs_supply_d_t: param V_hs_vent_d_t:
       C_df_H_d_t: param q_hs_rtd_H:
@@ -74,6 +75,7 @@ def calc_E_E_H_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, V_hs_supply_d_t, V_hs_vent
       Theta_hs_in_d_t: 
       V_hs_vent_d_t: 
       q_hs_rtd_H: 
+      q_hs_rtd_C:
       P_hs_mid_H: 
       P_fan_rtd_H: 
       q_hs_min_H: 
@@ -98,13 +100,13 @@ def calc_E_E_H_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, V_hs_supply_d_t, V_hs_vent
     E_E_fan_H_d_t = get_E_E_fan_H_d_t(P_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t)
 
     # (20)
-    e_th_mid_H = calc_e_th_mid_H(V_fan_mid_H, q_hs_mid_H)
+    e_th_mid_H = calc_e_th_mid_H(type,V_fan_mid_H, q_hs_mid_H, q_hs_rtd_C)
 
     # (19)
-    e_th_rtd_H = calc_e_th_rtd_H(V_fan_rtd_H, q_hs_rtd_H)
+    e_th_rtd_H = calc_e_th_rtd_H(type,V_fan_rtd_H, q_hs_rtd_H)
 
     # (17)
-    e_th_H_d_t = calc_e_th_H_d_t(Theta_ex_d_t, Theta_hs_in_d_t, Theta_hs_out_d_t, V_hs_supply_d_t)
+    e_th_H_d_t = calc_e_th_H_d_t(type,Theta_ex_d_t, Theta_hs_in_d_t, Theta_hs_out_d_t, V_hs_supply_d_t,q_hs_rtd_C)
 
     # (11)
     e_r_rtd_H = get_e_r_rtd_H(e_th_rtd_H, q_hs_rtd_H, P_hs_rtd_H, P_fan_rtd_H)
@@ -131,12 +133,13 @@ def calc_E_E_H_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, V_hs_supply_d_t, V_hs_vent
 
 
 # 日付dの時刻tにおける1時間当たりの冷房時の消費電力量（kWh/h）(2)
-def get_E_E_C_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t,  X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, V_hs_vent_d_t,
+def get_E_E_C_d_t(type, Theta_hs_out_d_t, Theta_hs_in_d_t,  X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, V_hs_vent_d_t,
                   q_hs_rtd_C, V_hs_dsgn_C, q_hs_mid_C, q_hs_min_C,
                   P_fan_rtd_C, P_fan_mid_C, P_hs_rtd_C, P_hs_mid_C, V_fan_rtd_C, V_fan_mid_C, EquipmentSpec, region):
     """
 
     Args:
+      type:
       Theta_hs_out_d_t: param Theta_hs_in_d_t:
       X_hs_out_d_t: param X_hs_in_d_t:
       V_hs_supply_d_t: param V_hs_vent_d_t:
@@ -171,13 +174,13 @@ def get_E_E_C_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t,  X_hs_out_d_t, X_hs_in_d_t,
     E_E_fan_C_d_t = get_E_E_fan_C_d_t(P_fan_rtd_C, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_C, q_hs_C_d_t)
 
     # (22)
-    e_th_mid_C = calc_e_th_mid_C(V_fan_mid_C, q_hs_mid_C)
+    e_th_mid_C = calc_e_th_mid_C(type, V_fan_mid_C, q_hs_mid_C, q_hs_rtd_C)
 
     # (21)
-    e_th_rtd_C = calc_e_th_rtd_C(V_fan_rtd_C, q_hs_rtd_C)
+    e_th_rtd_C = calc_e_th_rtd_C(type, V_fan_rtd_C, q_hs_rtd_C)
 
     # (18)
-    e_th_C_d_t = calc_e_th_C_d_t(Theta_ex_d_t, Theta_hs_in_d_t, X_hs_in_d_t, Theta_hs_out_d_t, V_hs_supply_d_t)
+    e_th_C_d_t = calc_e_th_C_d_t(type,Theta_ex_d_t, Theta_hs_in_d_t, X_hs_in_d_t, Theta_hs_out_d_t, V_hs_supply_d_t,q_hs_rtd_C)
 
     # (12)
     e_r_rtd_C = get_e_r_rtd_C(e_th_rtd_C, q_hs_rtd_C, P_hs_rtd_C, P_fan_rtd_C)
@@ -360,6 +363,22 @@ def get_e_hs_C_d_t(e_th_C_d_t, e_r_C_d_t):
 # ==============================================================================================
 # A.4.3.1 エネルギー消費量の算定におけるヒートポンプサイクルの理論効率に対する熱源機の効率の比
 # ==============================================================================================
+
+def get_e_r_H_d_t_2023(q_hs_H_d_t): #ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）対応
+    """(9-1)(9-2)(9-3)(9-4)
+
+    Args:
+      q_hs_H_d_t: 日付dの時刻tにおける1時間当たりの熱源機の平均暖房能力（W）
+
+    Returns:
+      日付dの時刻tにおける暖房時のヒートポンプサイクルの理論効率に対する熱源機の効率の比（-）
+
+    """
+    x = q_hs_H_d_t / 1000
+
+    e_r_H_d_t = -0.0316 * x * x + 0.2944 * x
+    
+    return e_r_H_d_t
 
 def get_e_r_H_d_t(q_hs_H_d_t, q_hs_rtd_H, q_hs_min_H, q_hs_mid_H, e_r_mid_H, e_r_min_H, e_r_rtd_H):
     """(9-1)(9-2)(9-3)(9-4)
@@ -621,15 +640,17 @@ def get_e_r_min_C(e_r_rtd_C):
 # A.4.4.1 エネルギー消費量の算定におけるヒートポンプサイクルの理論効率
 # ============================================================================
 
-def calc_e_th_H_d_t(Theta_ex_d_t, Theta_hs_in_d_t, Theta_hs_out_d_t, V_hs_supply_d_t):
+def calc_e_th_H_d_t(type, Theta_ex_d_t, Theta_hs_in_d_t, Theta_hs_out_d_t, V_hs_supply_d_t, q_hs_rtd_C):
     """(17)
 
     Args:
+      type: 暖房設備機器の種類
       Theta_ex_d_t: 日付dの時刻tにおける外気温
       Theta_hs_in_d_t: 日付dの時刻tにおける熱源機の入口における空気温度
       Theta_hs_out_d_t: 日付dの時刻tにおける熱源機の出口における空気温度
       V_hs_supply_d_t: 日付dの時刻tにおける熱源機の風量
       alpha_c_hex_H: 暖房時の室内熱交換器表面の顕熱伝達率（W/(m2・K)）
+      q_hs_rtd_C: 熱源機の定格冷房能力（MJ/h）
 
     Returns:
       日付dの時刻tにおける暖房時のヒートポンプサイクルの理論効率（-）
@@ -638,11 +659,11 @@ def calc_e_th_H_d_t(Theta_ex_d_t, Theta_hs_in_d_t, Theta_hs_out_d_t, V_hs_supply
     e_dash_th_d_t = np.zeros(24 * 365)
     for i in range(24 * 365):
         # (35)
-        alpha_c_hex_H = get_alpha_c_hex_H(V_hs_supply_d_t[i])
+        alpha_c_hex_H = get_alpha_c_hex_H(type, V_hs_supply_d_t[i], q_hs_rtd_C)
 
         # (31)
-        Theta_sur_f_hex_H = get_Theta_sur_f_hex_H_calc(Theta_hs_in_d_t[i], Theta_hs_out_d_t[i], V_hs_supply_d_t[i],
-                                                       alpha_c_hex_H)
+        Theta_sur_f_hex_H = get_Theta_sur_f_hex_H_calc(type, Theta_hs_in_d_t[i], Theta_hs_out_d_t[i], V_hs_supply_d_t[i],
+                                                       alpha_c_hex_H, q_hs_rtd_C)
 
         # (23)
         Theta_ref_cnd_H = get_Theta_ref_cnd_H(Theta_sur_f_hex_H)
@@ -662,17 +683,18 @@ def calc_e_th_H_d_t(Theta_ex_d_t, Theta_hs_in_d_t, Theta_hs_out_d_t, V_hs_supply
     # (17)
     return e_dash_th_d_t
 
-
-def calc_e_th_C_d_t(Theta_ex_d_t, Theta_hs_in_d_t, X_hs_in_d_t, Theta_hs_out_d_t, V_hs_supply_d_t):
+def calc_e_th_C_d_t(type, Theta_ex_d_t, Theta_hs_in_d_t, X_hs_in_d_t, Theta_hs_out_d_t, V_hs_supply_d_t, q_hs_rtd_C):
     """(18)
 
     Args:
+      type: 暖房設備機器の種類
       Theta_ex_d_t: 日付dの時刻tにおける外気温
       Theta_hs_in_d_t: 日付dの時刻tにおける熱源機の入口における空気温度
       X_hs_in_d_t: 日付dの時刻tにおける熱源機の入口における絶対湿度
       Theta_hs_out_d_t: 日付dの時刻tにおける熱源機の出口における空気温度
       V_hs_supply_d_t: 日付dの時刻tにおける熱源機の風量
       alpha_c_hex_C: 冷房時の室内熱交換器表面の顕熱伝達率（W/(m2・K)）
+      q_hs_rtd_C: 熱源機の定格冷房能力（MJ/h）
 
     Returns:
       日付dの時刻tにおける暖房時のヒートポンプサイクルの理論効率（-）
@@ -682,11 +704,11 @@ def calc_e_th_C_d_t(Theta_ex_d_t, Theta_hs_in_d_t, X_hs_in_d_t, Theta_hs_out_d_t
     Theta_sur_f_hex_C = np.zeros(24 * 365)
     for i in range(24 * 365):
         # (36)
-        alpha_c_hex_C, alpha_dash_c_hex_C = get_alpha_c_hex_C(V_hs_supply_d_t[i], X_hs_in_d_t[i])
+        alpha_c_hex_C, alpha_dash_c_hex_C = get_alpha_c_hex_C(type,V_hs_supply_d_t[i], X_hs_in_d_t[i], q_hs_rtd_C)
 
         # (32)
-        Theta_sur_f_hex_C[i] = get_Theta_sur_f_hex_C_calc(Theta_hs_in_d_t[i], Theta_hs_out_d_t[i], V_hs_supply_d_t[i],
-                                                       alpha_c_hex_C)
+        Theta_sur_f_hex_C[i] = get_Theta_sur_f_hex_C_calc(type, Theta_hs_in_d_t[i], Theta_hs_out_d_t[i], V_hs_supply_d_t[i],
+                                                       alpha_c_hex_C, q_hs_rtd_C)
 
         # (28)
         Theta_ref_evp_C = get_Theta_ref_evp_C(Theta_sur_f_hex_C[i])
@@ -711,12 +733,13 @@ def calc_e_th_C_d_t(Theta_ex_d_t, Theta_hs_in_d_t, X_hs_in_d_t, Theta_hs_out_d_t
 # A.4.4.2 JIS試験におけるヒートポンプサイクルの理論効率
 # ============================================================================
 
-def calc_e_th_rtd_H(V_fan_rtd_H, q_hs_rtd_H):
+def calc_e_th_rtd_H(type, V_fan_rtd_H, q_hs_rtd_C):
     """(19)
 
     Args:
+      type: 暖房設備機器の種類
       V_fan_rtd_H: 定格暖房能力運転時の送風機の風量（m3/h）
-      q_hs_rtd_H: 定格暖房能力（W）
+      q_hs_rtd_C: 定格暖房能力（W）
       alpha_c_hex_H: 暖房時の室内熱交換器表面の顕熱伝達率（W/(m2・K)）
 
     Returns:
@@ -724,10 +747,10 @@ def calc_e_th_rtd_H(V_fan_rtd_H, q_hs_rtd_H):
 
     """
     # (35)
-    alpha_c_hex_H = get_alpha_c_hex_H(V_fan_rtd_H)
+    alpha_c_hex_H = get_alpha_c_hex_H(type,V_fan_rtd_H,q_hs_rtd_C)
 
     # (33)
-    Theta_sur_f_hex_H = get_Theta_sur_f_hex_H_JIS(V_fan_rtd_H, q_hs_rtd_H, alpha_c_hex_H)
+    Theta_sur_f_hex_H = get_Theta_sur_f_hex_H_JIS(type, V_fan_rtd_H, q_hs_rtd_C, alpha_c_hex_H, q_hs_rtd_C)
 
     # (23)
     Theta_ref_cnd_H = get_Theta_ref_cnd_H(Theta_sur_f_hex_H)
@@ -747,24 +770,25 @@ def calc_e_th_rtd_H(V_fan_rtd_H, q_hs_rtd_H):
     # (19)
     return e_dash_th_rtd_H
 
-
-def calc_e_th_mid_H(V_fan_mid_H, q_hs_mid_H):
+def calc_e_th_mid_H(type, V_fan_mid_H, q_hs_mid_H, q_hs_rtd_C):
     """(20)
 
     Args:
+      type: 暖房設備機器の種類
       V_fan_mid_H: 中間暖房能力運転時の送風機の風量（m3/h）
       q_hs_mid_H: 熱源機の中間暖房能力（W）
       alpha_c_hex_H: 暖房時の室内熱交換器表面の顕熱伝達率（W/(m2・K)）
+      q_hs_rtd_C: 熱源機の定格冷房能力（-）
 
     Returns:
       中間暖房能力運転時のヒートポンプサイクルサイクルの理論効率（-）
 
     """
     # (35)
-    alpha_c_hex_H = get_alpha_c_hex_H(V_fan_mid_H)
+    alpha_c_hex_H = get_alpha_c_hex_H(type, V_fan_mid_H, q_hs_rtd_C)
 
     # (33)
-    Theta_sur_f_hex_H = get_Theta_sur_f_hex_H_JIS(V_fan_mid_H, q_hs_mid_H, alpha_c_hex_H)
+    Theta_sur_f_hex_H = get_Theta_sur_f_hex_H_JIS(type, V_fan_mid_H, q_hs_mid_H, alpha_c_hex_H, q_hs_rtd_C)
 
     # (23)
     Theta_ref_cnd_H = get_Theta_ref_cnd_H(Theta_sur_f_hex_H)
@@ -772,7 +796,7 @@ def calc_e_th_mid_H(V_fan_mid_H, q_hs_mid_H):
     # (24)
     Theta_ref_evp_H = get_Theta_ref_evp_H(7, Theta_ref_cnd_H)
 
-     # (25)
+    # (25)
     Theta_ref_SC_H = get_Theta_ref_SC_H(Theta_ref_cnd_H)
 
     # (26)
@@ -784,15 +808,15 @@ def calc_e_th_mid_H(V_fan_mid_H, q_hs_mid_H):
     # (20)
     return e_dash_th_mid_H
 
-
-def calc_e_th_rtd_C(V_fan_rtd_C, q_hs_rtd_C):
+def calc_e_th_rtd_C(type, V_fan_rtd_C, q_hs_rtd_C):
     """(21)
 
     Args:
+      type: 暖房設備機器の種類
       V_fan_rtd_H: 定格冷房能力運転時の送風機の風量（m3/h）
       q_hs_rtd_H: 定格冷房能力（W）
-      V_fan_rtd_C: param q_hs_rtd_C:
-      q_hs_rtd_C: 
+      V_fan_rtd_C: param
+      q_hs_rtd_C: 熱源機の定格冷房能力（MJ/h）
 
     Returns:
       定格冷房能力運転時のヒートポンプサイクルサイクルの理論効率（-）
@@ -801,7 +825,7 @@ def calc_e_th_rtd_C(V_fan_rtd_C, q_hs_rtd_C):
     # 表5より
     X_hs_in = 0.010376
     # (36)
-    alpha_c_hex_C, alpha_dash_c_hex_C = get_alpha_c_hex_C(V_fan_rtd_C, X_hs_in)
+    alpha_c_hex_C, alpha_dash_c_hex_C = get_alpha_c_hex_C(type, V_fan_rtd_C, X_hs_in, q_hs_rtd_C)
 
     # (34)
     def func(x):
@@ -817,7 +841,7 @@ def calc_e_th_rtd_C(V_fan_rtd_C, q_hs_rtd_C):
         q_hs_C = q_hs_rtd_C
 
         # 連立方程式を解くために(34a)の左辺を移項し、左辺を0にしておく
-        return calc_Theta_sur_f_hex_C_JIS(x, V_fan_rtd_C, alpha_c_hex_C, alpha_dash_c_hex_C) - q_hs_C
+        return calc_Theta_sur_f_hex_C_JIS(type, x, V_fan_rtd_C, alpha_c_hex_C, alpha_dash_c_hex_C, q_hs_rtd_C) - q_hs_C
 
     # x = fsolve(fun,x0) は、点 x0 を開始点として方程式 fun(x) = 0 (ゼロの配列) の解を求めようとする
     Theta_sur_f_hex_C = optimize.bisect(func, -273.15, 99.96)
@@ -840,15 +864,14 @@ def calc_e_th_rtd_C(V_fan_rtd_C, q_hs_rtd_C):
     # (21)
     return e_dash_th_rtd_C - 1
 
-
-def calc_e_th_mid_C(V_fan_mid_C, q_hs_mid_C):
+def calc_e_th_mid_C(type, V_fan_mid_C, q_hs_mid_C, q_hs_rtd_C):
     """(22)
 
     Args:
       V_fan_rtd_H: 定格冷房能力運転時の送風機の風量（m3/h）
-      q_hs_rtd_H: 定格冷房能力（W）
       V_fan_mid_C: param q_hs_mid_C:
       q_hs_mid_C: 
+      q_hs_rtd_C: 熱源機の定格冷房能力（MJ/h）
 
     Returns:
       定格冷房能力運転時のヒートポンプサイクルサイクルの理論効率（-）
@@ -857,7 +880,7 @@ def calc_e_th_mid_C(V_fan_mid_C, q_hs_mid_C):
     # 表5より
     X_hs_in = 0.010376
     # (36)
-    alpha_c_hex_C, alpha_dash_c_hex_C = get_alpha_c_hex_C(V_fan_mid_C, X_hs_in)
+    alpha_c_hex_C, alpha_dash_c_hex_C = get_alpha_c_hex_C(type, V_fan_mid_C, X_hs_in, q_hs_rtd_C)
 
     # (34)
     def func(x):
@@ -873,7 +896,7 @@ def calc_e_th_mid_C(V_fan_mid_C, q_hs_mid_C):
         q_hs_C = q_hs_mid_C
 
         # 連立方程式を解くために(34a)の左辺を移項し、左辺を0にしておく
-        return calc_Theta_sur_f_hex_C_JIS(x, V_fan_mid_C, alpha_c_hex_C, alpha_dash_c_hex_C) - q_hs_C
+        return calc_Theta_sur_f_hex_C_JIS(type, x, V_fan_mid_C, alpha_c_hex_C, alpha_dash_c_hex_C, q_hs_rtd_C) - q_hs_C
 
     # x = fsolve(fun,x0) は、点 x0 を開始点として方程式 fun(x) = 0 (ゼロの配列) の解を求めようとする
     Theta_sur_f_hex_C = optimize.bisect(func, -273.15, 99.96)
@@ -1047,14 +1070,16 @@ def get_Theta_ref_SH_C(Theta_ref_cnd_C):
 # A.5.1.1 エネルギー消費量の算定における熱交換器の表面温度
 # ============================================================================
 
-def get_Theta_sur_f_hex_H_calc(Theta_hs_in, Theta_hs_out, V_hs_supply, alpha_c_hex_H):
+def get_Theta_sur_f_hex_H_calc(type, Theta_hs_in, Theta_hs_out, V_hs_supply, alpha_c_hex_H, q_hs_rtd_H):
     """(31)
 
     Args:
+      type: 暖房設備機器の種類
       Theta_hs_in: 熱源機の入口における空気温度（℃）
       Theta_hs_out: 熱源機の出口における空気温度（℃）
       V_hs_supply: 熱源機の風量（m3/h）
       alpha_c_hex_H: 暖房時の室内熱交換器表面の顕熱伝達率（W/(m2・K)）
+      q_hs_rtd_C: 熱源機の定格冷房能力（MJ/h）
 
     Returns:
       エネルギー消費量の算定における熱交換器の表面温度を算定する場合の暖房時の室内機熱交換器の表面温度（℃）
@@ -1062,22 +1087,23 @@ def get_Theta_sur_f_hex_H_calc(Theta_hs_in, Theta_hs_out, V_hs_supply, alpha_c_h
     """
     c_p_air = get_c_p_air()
     rho_air = get_rho_air()
-    A_e_hex = get_A_e_hex()
+    A_e_hex = get_A_e_hex(type,q_hs_rtd_H)
 
     Theta_sur_f_hex_H = ((Theta_hs_in + Theta_hs_out) / 2) \
                         + (c_p_air * rho_air * V_hs_supply * (Theta_hs_out - Theta_hs_in) / 3600) / (A_e_hex * alpha_c_hex_H)
 
     return Theta_sur_f_hex_H
 
-
-def get_Theta_sur_f_hex_C_calc(Theta_hs_in, Theta_hs_out, V_hs_supply, alpha_c_hex_C):
+def get_Theta_sur_f_hex_C_calc(type, Theta_hs_in, Theta_hs_out, V_hs_supply, alpha_c_hex_C, q_hs_rtd_C):
     """(32)
 
     Args:
+      type: 暖房設備機器の種類
       Theta_hs_in: 熱源機の入口における空気温度（℃）
       Theta_hs_out: 熱源機の出口における空気温度（℃）
       V_hs_supply: 熱源機の風量（m3/h）
       alpha_c_hex_C: 冷房時の室内熱交換器表面の顕熱伝達率（W/(m2・K)）
+      q_hs_rtd_C: 熱源機の定格冷房能力（MJ/h）
 
     Returns:
       エネルギー消費量の算定における熱交換器の表面温度を算定する場合の冷房時の室内機熱交換器の表面温度（℃）
@@ -1085,7 +1111,7 @@ def get_Theta_sur_f_hex_C_calc(Theta_hs_in, Theta_hs_out, V_hs_supply, alpha_c_h
     """
     c_p_air = get_c_p_air()
     rho_air = get_rho_air()
-    A_e_hex = get_A_e_hex()
+    A_e_hex = get_A_e_hex(type, q_hs_rtd_C)
 
     Theta_sur_f_hex_C = ((Theta_hs_in + Theta_hs_out) / 2) \
                         - (c_p_air * rho_air * V_hs_supply * (Theta_hs_in - Theta_hs_out) / 3600) / (A_e_hex * alpha_c_hex_C)
@@ -1097,13 +1123,15 @@ def get_Theta_sur_f_hex_C_calc(Theta_hs_in, Theta_hs_out, V_hs_supply, alpha_c_h
 # A.5.1.2 JIS試験における熱交換器の表面温度
 # ============================================================================
 
-def get_Theta_sur_f_hex_H_JIS(V_fan_x_H, q_hs_X_H, alpha_c_hex_H):
+def get_Theta_sur_f_hex_H_JIS(type, V_fan_x_H, q_hs_X_H, alpha_c_hex_H, q_hs_rtd_C):
     """(33)
 
     Args:
+      type: 暖房設備機器の種類
       V_fan_x_H: 熱源機の風量（m3/h）※式(19)を算定する場合はV_fan_rtd_H、式(20)を算定する場合はV_fan_mid_H
       q_hs_X_H: 熱源機の暖房能力（W）※式(19)を算定する場合はq_hs_rtd_H、式(20)を算定する場合はq_hs_mid_H
       alpha_c_hex_H: 暖房時の室内機熱交換器の表面温度（℃）
+      q_hs_rtd_C: 熱源機の定格冷房能力（MJ/h）
 
     Returns:
       JIS試験における熱交換器の表面温度を算定する場合の暖房時の室内機熱交換器の表面温度（℃）
@@ -1116,44 +1144,46 @@ def get_Theta_sur_f_hex_H_JIS(V_fan_x_H, q_hs_X_H, alpha_c_hex_H):
 
     c_p_air = get_c_p_air()
     rho_air = get_rho_air()
-    A_e_hex = get_A_e_hex()
+    A_e_hex = get_A_e_hex(type, q_hs_rtd_C)
 
     Theta_sur_f_hex_H_JIS = Theta_hs_in + (q_hs_H / (2 * c_p_air * rho_air * V_hs_supply)) * 3600 \
                             + (q_hs_H / (A_e_hex * alpha_c_hex_H))
 
     return Theta_sur_f_hex_H_JIS
 
-
-def calc_Theta_sur_f_hex_C_JIS(Theta_surf_hex_C, V_fan_x_C, alpha_c_hex_C, alpha_dash_c_hex_C):
+def calc_Theta_sur_f_hex_C_JIS(type,Theta_surf_hex_C, V_fan_x_C, alpha_c_hex_C, alpha_dash_c_hex_C, q_hs_rtd_C):
     """(34a)
 
     Args:
+      type: 暖房設備機器の種類
       Theta_surf_hex_C: 冷房時の室内機熱交換器の表面温度（℃）
       V_fan_x_C: 熱源機の風量（m3/h）
       alpha_c_hex_C: 冷房時の室内熱交換器表面の顕熱伝達率（W/(m2・K)）
       alpha_dash_c_hex_C: 冷房時の室内熱交換器表面の潜熱伝達率（kg/(m2・s)）
+      q_hs_rtd_C: 熱源機の定格冷房能力（MJ/h）
 
     Returns:
       冷房時の室内機熱交換器の表面温度（℃） ※連立方程式の解
 
     """
     # (34b)
-    q_hs_CS = get_q_hs_CS(Theta_surf_hex_C, V_fan_x_C, alpha_c_hex_C)
+    q_hs_CS = get_q_hs_CS(type, Theta_surf_hex_C, V_fan_x_C, alpha_c_hex_C, q_hs_rtd_C)
 
     # (34c)
-    q_hs_CL = get_q_hs_CL(Theta_surf_hex_C, V_fan_x_C, alpha_dash_c_hex_C)
+    q_hs_CL = get_q_hs_CL(type, Theta_surf_hex_C, V_fan_x_C, alpha_dash_c_hex_C, q_hs_rtd_C)
 
     # (34a)
     return q_hs_CS + q_hs_CL
 
-
-def get_q_hs_CS(Theta_surf_hex_C, V_fan_x_C, alpha_c_hex_C):
+def get_q_hs_CS(type, Theta_surf_hex_C, V_fan_x_C, alpha_c_hex_C, q_hs_rtd_C):
     """(34b)
 
     Args:
+      type: 暖房設備機器の種類
       Theta_surf_hex_C: 冷房時の室内機熱交換器の表面温度（℃）
       V_fan_x_C: 熱源機の風量（m3/h）
       alpha_c_hex_C: 冷房時の室内熱交換器表面の顕熱伝達率（W/(m2・K)）
+      q_hs_rtd_C: 熱源機の定格冷房能力（MJ/h）
 
     Returns:
       熱源機の冷房顕熱能力（W）
@@ -1165,18 +1195,19 @@ def get_q_hs_CS(Theta_surf_hex_C, V_fan_x_C, alpha_c_hex_C):
 
     c_p_air = get_c_p_air()
     rho_air = get_rho_air()
-    A_e_hex = get_A_e_hex()
+    A_e_hex = get_A_e_hex(type, q_hs_rtd_C)
 
     return (Theta_hs_in - Theta_surf_hex_C) / (3600 / (2 * c_p_air * rho_air * V_hs_supply) + 1 / (A_e_hex * alpha_c_hex_C))
 
-
-def get_q_hs_CL(Theta_surf_hex_C, V_fan_x_C, alpha_dash_c_hex_C):
+def get_q_hs_CL(type, Theta_surf_hex_C, V_fan_x_C, alpha_dash_c_hex_C, q_hs_rtd_C):
     """(34c)
 
     Args:
+      type: 暖房設備機器の種類
       Theta_surf_hex_C: 冷房時の室内機熱交換器の表面温度（℃）
       V_fan_x_C: 熱源機の風量（m3/h）
       alpha_dash_c_hex_C: 冷房時の室内熱交換器表面の潜熱伝達率（kg/(m2・s)）
+      q_hs_rtd_C: 熱源機の定格冷房能力（-）
 
     Returns:
       熱源機の冷房潜熱能力（W）
@@ -1188,7 +1219,7 @@ def get_q_hs_CL(Theta_surf_hex_C, V_fan_x_C, alpha_dash_c_hex_C):
 
     L_wtr = get_L_wtr()
     rho_air = get_rho_air()
-    A_e_hex = get_A_e_hex()
+    A_e_hex = get_A_e_hex(type, q_hs_rtd_C)
 
     # ------ここから第11章5節------
 
@@ -1238,11 +1269,13 @@ def get_q_hs_CL(Theta_surf_hex_C, V_fan_x_C, alpha_dash_c_hex_C):
 # A.5.2 熱交換器表面の顕熱伝達率
 # ============================================================================
 
-def get_alpha_c_hex_H(V_fan_x_H):
+def get_alpha_c_hex_H(type, V_fan_x_H, q_hs_rtd_C):
     """(35)
 
     Args:
+      type: 暖房設備機器の種類
       V_fan_x_H: 熱源機の風量（m3/h）
+      q_hs_rtd_C: 定格冷房能力（MJ/h）
 
     Returns:
       暖房時の室内熱交換器表面の顕熱伝達率（W/(m2・K)）
@@ -1251,57 +1284,74 @@ def get_alpha_c_hex_H(V_fan_x_H):
     # 表5より
     V_hs_supply = V_fan_x_H
 
-    A_f_hex = get_A_f_hex()
+    A_f_hex = get_A_f_hex(type,q_hs_rtd_C)
 
     alpha_c_hex_H = (-0.0017 * ((V_hs_supply / 3600) / A_f_hex) ** 2 \
                      + 0.044 * ((V_hs_supply / 3600) / A_f_hex) + 0.0271) * 10 ** 3
 
     return alpha_c_hex_H
 
-
-def get_alpha_c_hex_C(V_fan_x_C, X_hs_in):
+def get_alpha_c_hex_C(type, V_fan_x_C, X_hs_in, q_hs_rtd_C):
     """(36)
 
     Args:
+      type: 暖房設備機器の種類
       V_fan_x_C: 熱源機の風量（m3/h）
       X_hs_in: 冷房時の熱源機の入口における絶対湿度（kg/kg(DA)）
+      q_hs_rtd_C:定格冷房能力(W)
 
     Returns:
       冷房時の室内熱交換器表面の顕熱伝達率（W/(m2・K)）および 冷房時の室内熱交換器表面の潜熱伝達率（kg/(m2・s)）
 
     """
+    # TODO: q_hs_rtd_C 単位表記あっているかチェックする
     # 表5より
     V_hs_supply = V_fan_x_C
 
-    A_f_hex = get_A_f_hex()
+    A_f_hex = get_A_f_hex(type, q_hs_rtd_C)
     c_p_air = get_c_p_air()
     c_p_w = get_c_p_w()
 
-    a = np.clip(V_hs_supply, 400, None)
+     #400→360
 
     # (36b)
-    alpha_dash_c_hex_C = 0.050 * np.log((a / 3600) / A_f_hex) + 0.073
+    if(type == 3):  #ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）_熱伝達特性
+      a = np.clip(V_hs_supply, 360, None)
+      alpha_dash_c_hex_C = 0.0631 * (a / 3600) / A_f_hex + 0.0015
+    else:
+      a = np.clip(V_hs_supply, 400, None)
+      alpha_dash_c_hex_C = 0.050 * np.log((a / 3600) / A_f_hex) + 0.073
 
     # (36a)
     alpha_c_hex_C = alpha_dash_c_hex_C * (c_p_air + c_p_w * X_hs_in)
 
     return alpha_c_hex_C, alpha_dash_c_hex_C
 
-
 # ============================================================================
 # A.5.3 熱交換器の表面積
 # ============================================================================
 
 # 室内機熱交換器の全面面積のうち熱交換に有効な面積 (m2)
-def get_A_f_hex():
-    """ """
-    return 0.23559
+#ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）_コイル特性
+def get_A_f_hex(type, q_hs_rtd_C):
+    if type == 3: #ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）
+      if q_hs_rtd_C < 5600:
+        return 0.2
+      else:
+        return 0.3
+    else:
+      return 0.23559
 
 
 # 室内機熱交換器の表面積のうち熱交換に有効な面積 (m2)
-def get_A_e_hex():
-    """ """
-    return 6.396
+def get_A_e_hex(type, q_hs_rtd_C):
+    if type == 3: #ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）
+      if q_hs_rtd_C < 5600:
+        return 6.2
+      else:
+        return 10.6
+    else:
+      return 6.396
 
 
 # ============================================================================

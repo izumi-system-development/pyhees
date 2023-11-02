@@ -1281,6 +1281,37 @@ def get_V_hs_vent_d_t(V_vent_g_i, general_ventilation):
 # ============================================================================
 # 9.7 VAV調整前の熱源機の風量
 # ============================================================================
+def get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t, region): #ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）_風量特性
+    """
+    Args:
+      Q_hat_hs_d_t: 日付dの時刻tにおける１時間当たりの熱源機の風量を計算するための熱源機の出力（MJ/h）
+      region: 地域区分
+
+    Returns:
+      日付dの時刻tにおけるVAV調整前の熱源機の風量（m3/h）
+
+    """
+    H, C, M = get_season_array_d_t(region)
+
+    V_dash_hs_supply_d_t = np.zeros(24 * 365)
+    # 暖房期：顕熱2.5kW未満
+    f1 = np.logical_and(H, Q_hat_hs_d_t < 2500)
+    # 暖房期：顕熱2.5kW以上    
+    f2 = np.logical_and(H, Q_hat_hs_d_t >= 2500)
+    V_dash_hs_supply_d_t[f1] = 0.17
+    V_dash_hs_supply_d_t[f2] = 0.092 * Q_hat_hs_d_t - 0.06
+
+    # 冷房期：顕熱2.5kW未満
+    f3 = np.logical_and(C, Q_hat_hs_d_t < 2500)
+    # 冷房期：顕熱2.5kW以上    
+    f4 = np.logical_and(C, Q_hat_hs_d_t >= 2500)
+    V_dash_hs_supply_d_t[f3] = 0.17
+    V_dash_hs_supply_d_t[f4] = 0.092 * Q_hat_hs_d_t - 0.06
+
+    # 中間期
+    V_dash_hs_supply_d_t[M] = 0.17
+
+    return V_dash_hs_supply_d_t
 
 def get_V_dash_hs_supply_d_t(V_hs_min, V_hs_dsgn_H, V_hs_dsgn_C, Q_hs_rtd_H, Q_hs_rtd_C, Q_hat_hs_d_t, region):
     """(36-1)(36-2)(36-3)
@@ -1449,6 +1480,8 @@ def calc_Q_hat_hs_d_t(Q, A_A, V_vent_l_d_t, V_vent_g_i, mu_H, mu_C, J_d_t, q_gen
 
     # (40-2c)
     Q_hat_hs_CL_d_t[C] = ((rho_air * (V_vent_l_d_t[C] + np.sum(V_vent_g_i[:5])) * (X_ex_d_t[C] - X_set_C) * 10 ** 3 + w_gen_d_t[C]) \
+    # CHECK: 多分修正されて上が真か
+    # Q_hat_hs_CL_d_t[C] = ((rho_air * (V_vent_l_d_t[C] + np.sum(V_vent_g_i[:5])) * (X_ex_d_t[C] / 1000 - X_set_C) * 10 ** 3 + w_gen_d_t[C]) \
                        * L_wtr + n_p_d_t[C] * q_p_CL * 3600) * 10 ** -6
 
     # (40-2a)
