@@ -1085,7 +1085,7 @@ def get_Theta_ref_SH_C(Theta_ref_cnd_C):
 # A.5.1.1 エネルギー消費量の算定における熱交換器の表面温度
 # ============================================================================
 
-def get_Theta_sur_f_hex_H_calc(type, Theta_hs_in, Theta_hs_out, V_hs_supply, alpha_c_hex_H, q_hs_rtd_H):
+def get_Theta_sur_f_hex_H_calc(type, Theta_hs_in, Theta_hs_out, V_hs_supply, alpha_c_hex_H, q_hs_rtd_C):
     """(31)
 
     Args:
@@ -1102,7 +1102,7 @@ def get_Theta_sur_f_hex_H_calc(type, Theta_hs_in, Theta_hs_out, V_hs_supply, alp
     """
     c_p_air = get_c_p_air()
     rho_air = get_rho_air()
-    A_e_hex = get_A_e_hex(type,q_hs_rtd_H)
+    A_e_hex = get_A_e_hex(type,q_hs_rtd_C)
 
     Theta_sur_f_hex_H = ((Theta_hs_in + Theta_hs_out) / 2) \
                         + (c_p_air * rho_air * V_hs_supply * (Theta_hs_out - Theta_hs_in) / 3600) / (A_e_hex * alpha_c_hex_H)

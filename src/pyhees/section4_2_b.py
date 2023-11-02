@@ -227,7 +227,6 @@ def get_P_fan_rtd_H(type, V_fan_rtd_H, q_hs_H_d_t):
 
     """
     if type == 'ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）':
-      constants.P_fan_H_d_t_a3 = 3
       x = q_hs_H_d_t / 1000
       return constants.P_fan_H_d_t_a4 * x**4 + constants.P_fan_H_d_t_a3 * x**3 + constants.P_fan_H_d_t_a2 * x**2 + constants.P_fan_H_d_t_a1 * x + constants.P_fan_H_d_t_a0
     else:
