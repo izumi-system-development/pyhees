@@ -240,7 +240,6 @@ def get_V_fan_rtd_C(q_hs_rtd_C):
 
     Args:
       q_hs_rdt_C: 熱源機の定格冷房能力（W）
-      q_hs_rtd_C: returns: 定格冷房能力運転時の送風機の風量（m3/h）
 
     Returns:
       定格冷房能力運転時の送風機の風量（m3/h）

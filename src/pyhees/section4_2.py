@@ -1116,7 +1116,7 @@ def get_Q_hs_max_C_d_t(q_hs_rtd_C):
     """(27)
 
     Args:
-      q_hs_rtd_C: 熱源機の冷房時の定格出力[m^3/h]
+      q_hs_rtd_C: 熱源機の冷房時の定格出力[W]
 
     Returns:
       最大冷房出力 [MJ/h]

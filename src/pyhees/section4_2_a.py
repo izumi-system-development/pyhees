@@ -446,9 +446,9 @@ def get_e_r_C_d_t(q_hs_C_d_t, q_hs_rtd_C, q_hs_min_C, q_hs_mid_C, e_r_mid_C, e_r
 
     Args:
       q_hs_C_d_t: 日付dの時刻tにおける1時間当たりの熱源機の平均冷房能力（-）
-      q_hs_rtd_C: 熱源機の定格冷房能力（-）
-      q_hs_min_C: 熱源機の最小冷房能力（-）
-      q_hs_mid_C: 熱源機の中間冷房能力（-）
+      q_hs_rtd_C: 熱源機の定格冷房能力（W）
+      q_hs_min_C: 熱源機の最小冷房能力（W）
+      q_hs_mid_C: 熱源機の中間冷房能力（W）
       e_r_mid_C: 中間冷房能力運転時のヒートポンプサイクルの理論効率に対する熱源機の効率の比（-）
       e_r_min_C: 最小冷房能力運転時のヒートポンプサイクルの理論効率に対する熱源機の効率の比（-）
       e_r_rtd_C: 定格冷房能力運転時のヒートポンプサイクルの理論効率に対する熱源機の効率の比（-）
@@ -522,7 +522,7 @@ def get_e_r_rtd_C(e_th_rtd_C, q_hs_rtd_C, P_hs_rtd_C, P_fan_rtd_C):
 
     Args:
       e_th_rtd_C: 定格冷房能力運転時のヒートポンプサイクルの理論効率（-）
-      q_hs_rtd_C: 熱源機の定格冷房能力（-）
+      q_hs_rtd_C: 熱源機の定格冷房能力（W）
       P_hs_rtd_C: 熱源機の定格冷房消費電力（W）
       P_fan_rtd_C: 定格冷房能力運転時の送風機の消費電力（W）
 
@@ -666,7 +666,7 @@ def calc_e_th_H_d_t(type, Theta_ex_d_t, Theta_hs_in_d_t, Theta_hs_out_d_t, V_hs_
       Theta_hs_out_d_t: 日付dの時刻tにおける熱源機の出口における空気温度
       V_hs_supply_d_t: 日付dの時刻tにおける熱源機の風量
       alpha_c_hex_H: 暖房時の室内熱交換器表面の顕熱伝達率（W/(m2・K)）
-      q_hs_rtd_C: 熱源機の定格冷房能力（MJ/h）
+      q_hs_rtd_C: 熱源機の定格冷房能力（W）
 
     Returns:
       日付dの時刻tにおける暖房時のヒートポンプサイクルの理論効率（-）
@@ -710,7 +710,7 @@ def calc_e_th_C_d_t(type, Theta_ex_d_t, Theta_hs_in_d_t, X_hs_in_d_t, Theta_hs_o
       Theta_hs_out_d_t: 日付dの時刻tにおける熱源機の出口における空気温度
       V_hs_supply_d_t: 日付dの時刻tにおける熱源機の風量
       alpha_c_hex_C: 冷房時の室内熱交換器表面の顕熱伝達率（W/(m2・K)）
-      q_hs_rtd_C: 熱源機の定格冷房能力（MJ/h）
+      q_hs_rtd_C: 熱源機の定格冷房能力（W）
 
     Returns:
       日付dの時刻tにおける暖房時のヒートポンプサイクルの理論効率（-）
@@ -795,7 +795,7 @@ def calc_e_th_mid_H(type, V_fan_mid_H, q_hs_mid_H, q_hs_rtd_C):
       V_fan_mid_H: 中間暖房能力運転時の送風機の風量（m3/h）
       q_hs_mid_H: 熱源機の中間暖房能力（W）
       alpha_c_hex_H: 暖房時の室内熱交換器表面の顕熱伝達率（W/(m2・K)）
-      q_hs_rtd_C: 熱源機の定格冷房能力（-）
+      q_hs_rtd_C: 熱源機の定格冷房能力（W）
 
     Returns:
       中間暖房能力運転時のヒートポンプサイクルサイクルの理論効率（-）
@@ -831,9 +831,9 @@ def calc_e_th_rtd_C(type, V_fan_rtd_C, q_hs_rtd_C):
     Args:
       type: 暖房設備機器の種類
       V_fan_rtd_H: 定格冷房能力運転時の送風機の風量（m3/h）
-      q_hs_rtd_H: 定格冷房能力（W）
+      q_hs_rtd_H: 定格暖房能力（W）
+      q_hs_rtd_C: 定格冷房能力（W）
       V_fan_rtd_C: param
-      q_hs_rtd_C: 熱源機の定格冷房能力（MJ/h）
 
     Returns:
       定格冷房能力運転時のヒートポンプサイクルサイクルの理論効率（-）
@@ -886,9 +886,9 @@ def calc_e_th_mid_C(type, V_fan_mid_C, q_hs_mid_C, q_hs_rtd_C):
 
     Args:
       V_fan_rtd_H: 定格冷房能力運転時の送風機の風量（m3/h）
-      V_fan_mid_C: param q_hs_mid_C:
+      V_fan_mid_C:
       q_hs_mid_C: 
-      q_hs_rtd_C: 熱源機の定格冷房能力（MJ/h）
+      q_hs_rtd_C: 熱源機の定格冷房能力（W）
 
     Returns:
       定格冷房能力運転時のヒートポンプサイクルサイクルの理論効率（-）
@@ -1096,7 +1096,7 @@ def get_Theta_sur_f_hex_H_calc(type, Theta_hs_in, Theta_hs_out, V_hs_supply, alp
       Theta_hs_out: 熱源機の出口における空気温度（℃）
       V_hs_supply: 熱源機の風量（m3/h）
       alpha_c_hex_H: 暖房時の室内熱交換器表面の顕熱伝達率（W/(m2・K)）
-      q_hs_rtd_C: 熱源機の定格冷房能力（MJ/h）
+      q_hs_rtd_C: 熱源機の定格冷房能力（W）
 
     Returns:
       エネルギー消費量の算定における熱交換器の表面温度を算定する場合の暖房時の室内機熱交換器の表面温度（℃）
@@ -1120,7 +1120,7 @@ def get_Theta_sur_f_hex_C_calc(type, Theta_hs_in, Theta_hs_out, V_hs_supply, alp
       Theta_hs_out: 熱源機の出口における空気温度（℃）
       V_hs_supply: 熱源機の風量（m3/h）
       alpha_c_hex_C: 冷房時の室内熱交換器表面の顕熱伝達率（W/(m2・K)）
-      q_hs_rtd_C: 熱源機の定格冷房能力（MJ/h）
+      q_hs_rtd_C: 熱源機の定格冷房能力（W）
 
     Returns:
       エネルギー消費量の算定における熱交換器の表面温度を算定する場合の冷房時の室内機熱交換器の表面温度（℃）
@@ -1148,7 +1148,7 @@ def get_Theta_sur_f_hex_H_JIS(type, V_fan_x_H, q_hs_X_H, alpha_c_hex_H, q_hs_rtd
       V_fan_x_H: 熱源機の風量（m3/h）※式(19)を算定する場合はV_fan_rtd_H、式(20)を算定する場合はV_fan_mid_H
       q_hs_X_H: 熱源機の暖房能力（W）※式(19)を算定する場合はq_hs_rtd_H、式(20)を算定する場合はq_hs_mid_H
       alpha_c_hex_H: 暖房時の室内機熱交換器の表面温度（℃）
-      q_hs_rtd_C: 熱源機の定格冷房能力（MJ/h）
+      q_hs_rtd_C: 熱源機の定格冷房能力（W）
 
     Returns:
       JIS試験における熱交換器の表面温度を算定する場合の暖房時の室内機熱交換器の表面温度（℃）
@@ -1177,7 +1177,7 @@ def calc_Theta_sur_f_hex_C_JIS(type, Theta_surf_hex_C, V_fan_x_C, alpha_c_hex_C,
       V_fan_x_C: 熱源機の風量（m3/h）
       alpha_c_hex_C: 冷房時の室内熱交換器表面の顕熱伝達率（W/(m2・K)）
       alpha_dash_c_hex_C: 冷房時の室内熱交換器表面の潜熱伝達率（kg/(m2・s)）
-      q_hs_rtd_C: 熱源機の定格冷房能力（MJ/h）
+      q_hs_rtd_C: 熱源機の定格冷房能力（W）
 
     Returns:
       冷房時の室内機熱交換器の表面温度（℃） ※連立方程式の解
@@ -1200,7 +1200,7 @@ def get_q_hs_CS(type, Theta_surf_hex_C, V_fan_x_C, alpha_c_hex_C, q_hs_rtd_C):
       Theta_surf_hex_C: 冷房時の室内機熱交換器の表面温度（℃）
       V_fan_x_C: 熱源機の風量（m3/h）
       alpha_c_hex_C: 冷房時の室内熱交換器表面の顕熱伝達率（W/(m2・K)）
-      q_hs_rtd_C: 熱源機の定格冷房能力（MJ/h）
+      q_hs_rtd_C: 熱源機の定格冷房能力（W）
 
     Returns:
       熱源機の冷房顕熱能力（W）
@@ -1224,7 +1224,7 @@ def get_q_hs_CL(type, Theta_surf_hex_C, V_fan_x_C, alpha_dash_c_hex_C, q_hs_rtd_
       Theta_surf_hex_C: 冷房時の室内機熱交換器の表面温度（℃）
       V_fan_x_C: 熱源機の風量（m3/h）
       alpha_dash_c_hex_C: 冷房時の室内熱交換器表面の潜熱伝達率（kg/(m2・s)）
-      q_hs_rtd_C: 熱源機の定格冷房能力（-）
+      q_hs_rtd_C: 熱源機の定格冷房能力（W）
 
     Returns:
       熱源機の冷房潜熱能力（W）
@@ -1292,7 +1292,7 @@ def get_alpha_c_hex_H(type, V_fan_x_H, q_hs_rtd_C):
     Args:
       type: 暖房設備機器の種類
       V_fan_x_H: 熱源機の風量（m3/h）
-      q_hs_rtd_C: 定格冷房能力（MJ/h）
+      q_hs_rtd_C: 定格冷房能力（W）
 
     Returns:
       暖房時の室内熱交換器表面の顕熱伝達率（W/(m2・K)）
@@ -1364,7 +1364,6 @@ def get_A_f_hex(type, q_hs_rtd_C):
 # 室内機熱交換器の表面積のうち熱交換に有効な面積 (m2)
 def get_A_e_hex(type, q_hs_rtd_C):
     if type == constants.PROCESS_TYPE_3:  # ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）
-      constants.A_e_hex_large_H = 3
       if q_hs_rtd_C < 5600:
         return constants.A_e_hex_small_H
       else:
