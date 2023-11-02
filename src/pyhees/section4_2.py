@@ -43,13 +43,14 @@ from pyhees.section11_6 import \
     get_table_7
 
 from pyhees.section4_3 import \
+    get_C_af_H, \
     get_C_af_C
 
 import jjjexperiment.constants as constants
 
 # 未処理負荷と機器の計算に必要な変数を取得
 def calc_Q_UT_A(A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs_dsgn_H, V_hs_dsgn_C, Q,
-             VAV, general_ventilation, duct_insulation, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i, type, input_C_af_C):
+             VAV, general_ventilation, duct_insulation, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i, type, input_C_af_H, input_C_af_C):
     """
 
     Args:
@@ -72,6 +73,7 @@ def calc_Q_UT_A(A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs
       L_H_d_t_i:
       L_CL_d_t_i:
       type:
+      input_C_af_H:
       input_C_af_C:
 
     Returns:
@@ -251,7 +253,7 @@ def calc_Q_UT_A(A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs
     C_df_H_d_t = get_C_df_H_d_t(Theta_ex_d_t, h_ex_d_t)
 
     # (23)
-    Q_hs_max_H_d_t = get_Q_hs_max_H_d_t(type, q_hs_rtd_H, C_df_H_d_t, input_C_af_C)
+    Q_hs_max_H_d_t = get_Q_hs_max_H_d_t(type, q_hs_rtd_H, C_df_H_d_t, input_C_af_H)
 
     # (20)
     X_star_hs_in_d_t = get_X_star_hs_in_d_t(X_star_NR_d_t)
@@ -1041,14 +1043,14 @@ def get_X_req_d_t_i(X_star_HBR_d_t, L_star_CL_d_t_i, V_dash_supply_d_t_i, region
 # 9.5.1 熱源機の最大暖房出力
 # ============================================================================
 
-def get_Q_hs_max_H_d_t(type, q_hs_rtd_H, C_df_H_d_t, input_C_af_C):
+def get_Q_hs_max_H_d_t(type, q_hs_rtd_H, C_df_H_d_t, input_C_af_H):
     """(23)
 
     Args:
       type: 暖房設備機器の種類
       q_hs_rtd_H: 熱源機の定格暖房能力 (W)
       C_df_H_d_t: 日付dの時刻tにおけるデフロストに関する暖房出力補正係数（-）
-      input_C_af_C(dict): 室内機吹き出し風量に関する冷房出力補正係数に関する入力
+      input_C_af_H(dict): 室内機吹き出し風量に関する暖房出力補正係数に関する入力
 
     Returns:
       熱源機の最大暖房出力 (MJ/h)
@@ -1060,8 +1062,8 @@ def get_Q_hs_max_H_d_t(type, q_hs_rtd_H, C_df_H_d_t, input_C_af_C):
 
     if q_hs_rtd_H is not None:
         if type == constants.PROCESS_TYPE_3:  # ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）
-            C_af_C = get_C_af_C(input_C_af_C)
-            Q_hs_max_H_d_t = q_hs_rtd_H * alpha_max_H * C_df_H_d_t * C_af_C * 3600 * 10 ** -6
+            C_af_H = get_C_af_H(input_C_af_H)
+            Q_hs_max_H_d_t = q_hs_rtd_H * alpha_max_H * C_df_H_d_t * C_af_H * 3600 * 10 ** -6
         else:
             Q_hs_max_H_d_t = q_hs_rtd_H * alpha_max_H * C_df_H_d_t * 3600 * 10 ** -6
 

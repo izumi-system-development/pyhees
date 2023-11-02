@@ -117,7 +117,7 @@ def calc_heating_load(region, sol_region, A_A, A_MR, A_OR, Q, mu_H, mu_C, NV_MR,
 # ---------------------------------------------------
 
 def calc_Q_UT_H_A_d_t(A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs_dsgn_H, V_hs_dsgn_C, Q,
-                     VAV, general_ventilation, duct_insulation, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i):
+                     VAV, general_ventilation, duct_insulation, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i, type, input_C_af_H, input_C_af_C):
     """住宅全体を連続的に暖房する方式おける暖房設備の未処理暖房負荷 (1)
 
     Args:
@@ -139,6 +139,9 @@ def calc_Q_UT_H_A_d_t(A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C
       L_H_d_t_i(ndarray): 日付dの時刻tにおける暖冷房区画iの1時間当たりの暖房負荷（MJ/h）
       L_CS_d_t_i(ndarray): 暖冷房区画iの 1 時間当たりの冷房顕熱負荷
       L_CL_d_t_i(ndarray): 暖冷房区画iの 1 時間当たりの冷房潜熱負荷
+      type: 暖房設備機器の種類
+      input_C_af_H(dict): 室内機吹き出し風量に関する暖房出力補正係数に関する入力
+      input_C_af_C(dict): 室内機吹き出し風量に関する冷房出力補正係数に関する入力
 
     Returns:
       ndarray: 住戸全体を連続的に暖房する方式における1時間当たりの暖房設備の未処理暖房負荷(MJ/h)
@@ -146,7 +149,7 @@ def calc_Q_UT_H_A_d_t(A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C
     """
     _, Q_UT_H_d_t_i, _, _, _, _, _, _, _, _, _ = dc.calc_Q_UT_A(A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C,
                                           V_hs_dsgn_H, V_hs_dsgn_C, Q, VAV, general_ventilation,
-                                          duct_insulation, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i)
+                                          duct_insulation, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i, type, input_C_af_H, input_C_af_C)
 
     Q_UT_H_A_d_t = np.sum(Q_UT_H_d_t_i, axis=0)
 
@@ -439,7 +442,7 @@ def get_Q_UT_H_d_t_i(Q_T_H_d_t_i, L_H_d_t_i):
 # 6.2 暖房設備のエネルギー消費量
 # ===================================================
 
-def get_E_E_H_d_t(region, sol_region, A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q,
+def get_E_E_H_d_t(region, sol_region, A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, type, input_C_af_H, input_C_af_C, 
                   H_A=None,
                   spec_MR=None,
                   spec_OR=None, spec_HS=None,
@@ -475,6 +478,9 @@ def get_E_E_H_d_t(region, sol_region, A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q,
       L_T_H_d_t_i(ndarray, optional): 暖房区画i=1-5それぞれの暖房負荷 (Default value = None)
       L_T_CS_d_t_i(ndarray, optional): 冷房区画i=1-5それぞれの冷房顕熱負荷 (Default value = None)
       L_T_CL_d_t_i(ndarray, optional): 冷房区画i=1-5それぞれの冷房潜熱負荷 (Default value = None)
+      type: 暖房設備機器の種類
+      input_C_af_H(dict): 室内機吹き出し風量に関する暖房出力補正係数に関する入力
+      input_C_af_C(dict): 室内機吹き出し風量に関する冷房出力補正係数に関する入力
       **args:
 
     Returns:
@@ -485,8 +491,8 @@ def get_E_E_H_d_t(region, sol_region, A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q,
         return np.zeros(24 * 365)
 
     # 暖房設備機器等の消費電力量
-    E_E_hs_d_t = calc_E_E_hs_d_t(region, A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, H_A, spec_MR, spec_OR, spec_HS, mode_MR, mode_OR, HW, CG,
-                                 L_T_H_d_t_i, L_T_CS_d_t_i, L_T_CL_d_t_i)
+    E_E_hs_d_t = calc_E_E_hs_d_t(region, A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, H_A, spec_MR, spec_OR, spec_HS, mode_MR, mode_OR, CG,
+                                 L_T_H_d_t_i, L_T_CS_d_t_i, L_T_CL_d_t_i, type, input_C_af_H, input_C_af_C)
 
     # 空気集熱式太陽熱利用設備の補機の消費電力量のうちの暖房設備への付加分
     E_E_aux_ass_d_t = get_E_E_aux_ass_d_t(SHC, heating_flag_d, region, sol_region)
@@ -532,7 +538,7 @@ def get_E_E_aux_ass_d_t(SHC, heating_flag_d, region, sol_region):
 
 # TODO: 独自追加引数は末尾にまとめる type
 def calc_E_E_hs_d_t(type, region, A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, H_A, spec_MR, spec_OR, spec_HS, mode_MR, mode_OR, HW, CG,
-                    L_T_H_d_t_i, L_T_CS_d_t_i, L_T_CL_d_t_i):
+                    L_T_H_d_t_i, L_T_CS_d_t_i, L_T_CL_d_t_i, input_C_af_H, input_C_af_C):
     """暖房設備機器等の消費電力量（kWh/h）を計算する
 
     Args:
@@ -556,13 +562,15 @@ def calc_E_E_hs_d_t(type, region, A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, H_A, sp
       L_T_H_d_t_i(ndarray): 暖房区画i=1-5それぞれの暖房負荷
       L_T_CS_d_t_i(ndarray): 冷房区画i=1-5それぞれの冷房顕熱負荷
       L_T_CL_d_t_i(ndarray): 冷房区画i=1-5それぞれの冷房潜熱負荷
+      input_C_af_H(dict): 室内機吹き出し風量に関する暖房出力補正係数に関する入力
+      input_C_af_C(dict): 室内機吹き出し風量に関する冷房出力補正係数に関する入力
 
     Returns:
       ndarray: 暖房設備機器等の消費電力量（kWh/h）
 
     """
     if H_A is not None:
-        return calc_E_E_H_hs_A_d_t(type,A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, H_A, L_T_H_d_t_i, L_T_CS_d_t_i, L_T_CL_d_t_i, region)
+        return calc_E_E_H_hs_A_d_t(type,A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, H_A, L_T_H_d_t_i, L_T_CS_d_t_i, L_T_CL_d_t_i, region, type, input_C_af_H, input_C_af_C)
     elif (spec_MR is not None or spec_OR is not None) and L_T_H_d_t_i is not None:
         if is_hotwaterheatingonly(spec_MR, spec_OR):
             # 居室のみを暖房する方式でかつ主たる居室とその他の居室ともに温水暖房を設置する場合 (8a)
@@ -1585,7 +1593,7 @@ def calc_E_M_hs_d_t(region, A_A, A_MR, A_OR, H_A, spec_MR, spec_OR, spec_HS, L_H
 # ---------------------------------------------------
 
 # TODO: 独自追加引数は末尾にまとめる type
-def calc_E_E_H_hs_A_d_t(type,A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, H_A, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i, q_hs_H_d_t, region):
+def calc_E_E_H_hs_A_d_t(type,A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, H_A, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i, q_hs_H_d_t, region, input_C_af_H, input_C_af_C):
     """住戸全体を連続的に暖房する方式における暖房設備機器の消費電力量（kWh/h）を計算する
 
     Args:
@@ -1601,8 +1609,10 @@ def calc_E_E_H_hs_A_d_t(type,A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, H_A, L_H_d_t
       L_H_d_t_i(ndarray): 暖房区画i=1-5それぞれの暖房負荷
       L_CS_d_t_i(ndarray): 冷房区画i=1-5それぞれの冷房顕熱負荷
       L_CL_d_t_i(ndarray): 冷房区画i=1-5それぞれの冷房潜熱負荷
-      region(int): 省エネルギー地域区分
       q_hs_H_d_t: 日付dの時刻tにおける1時間当たりの熱源機の平均暖房能力（-）
+      region(int): 省エネルギー地域区分
+      input_C_af_H(dict): 室内機吹き出し風量に関する暖房出力補正係数に関する入力
+      input_C_af_C(dict): 室内機吹き出し風量に関する冷房出力補正係数に関する入力
 
     Returns:
       ndarray: 住戸全体を連続的に暖房する方式における暖房設備機器の消費電力量（kWh/h）
@@ -1675,7 +1685,7 @@ def calc_E_E_H_hs_A_d_t(type,A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, H_A, L_H_d_t
                                                                     q_hs_rtd_H, q_hs_rtd_C, V_hs_dsgn_H,
                                                                     V_hs_dsgn_C, Q, VAV, general_ventilation,
                                                                     duct_insulation, region, L_H_d_t_i,
-                                                                    L_CS_d_t_i, L_CL_d_t_i)
+                                                                    L_CS_d_t_i, L_CL_d_t_i, type, input_C_af_H, input_C_af_C)
 
     # 電力消費量の計算
     E_E_H_d_t = dc_a.calc_E_E_H_d_t(
@@ -1947,7 +1957,7 @@ def calc_E_M_d_t(i, device, A_A, A_MR, A_OR, L_H_d_t):
 # ===================================================
 
 def calc_E_UT_H_d_t(region, A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, mode_H, H_A, spec_MR, spec_OR, spec_HS, mode_MR, mode_OR, HW, CG,
-                    L_T_H_d_t, L_CS_d_t, L_CL_d_t):
+                    L_T_H_d_t, L_CS_d_t, L_CL_d_t, type, input_C_af_H, input_C_af_C):
     """暖房設備の未処理暖房負荷の設計一次エネルギー消費量相当値（MJ/h）(13)を取得する
     (12)(13)式を内部分岐して呼び出す関数
 
@@ -1972,6 +1982,9 @@ def calc_E_UT_H_d_t(region, A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, mode_H, H_A, 
       L_CS_d_t(ndarray): 冷房区画の冷房顕熱負荷
       L_CL_d_t(ndarray): 冷房区画の冷房潜熱負荷
       mode_H: returns: 暖房設備の未処理暖房負荷の設計一次エネルギー消費量相当値（MJ/h）
+      type: 暖房設備機器の種類
+      input_C_af_H(dict): 室内機吹き出し風量に関する暖房出力補正係数に関する入力
+      input_C_af_C(dict): 室内機吹き出し風量に関する冷房出力補正係数に関する入力
 
     Returns:
       ndarray: 暖房設備の未処理暖房負荷の設計一次エネルギー消費量相当値（MJ/h）
@@ -1980,7 +1993,7 @@ def calc_E_UT_H_d_t(region, A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, mode_H, H_A, 
     if mode_H == '住戸全体を連続的に暖房する方式':
         # 全館連続
         return calc_E_UT_H_d_t__modeA(H_A, A_A, A_MR, A_OR,r_env, mu_H, mu_C, Q, region,
-                                      L_T_H_d_t, L_CS_d_t, L_CL_d_t)
+                                      L_T_H_d_t, L_CS_d_t, L_CL_d_t, type, input_C_af_H, input_C_af_C)
     elif mode_H == '居室のみを暖房する方式でかつ主たる居室とその他の居室ともに温水暖房を設置する場合に該当しない場合' or \
             mode_H == '設置しない':
         # 居室暖房
@@ -1996,7 +2009,7 @@ def calc_E_UT_H_d_t(region, A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, mode_H, H_A, 
 # 6.4.1 住戸全体を連続的に暖房する方式
 # ---------------------------------------------------
 
-def calc_E_UT_H_d_t__modeA(H_A, A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i):
+def calc_E_UT_H_d_t__modeA(H_A, A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i, type, input_C_af_H, input_C_af_C):
     """暖房設備の未処理暖房負荷の設計一次エネルギー消費量相当値（MJ/h）(13)を取得する
 
     Args:
@@ -2012,6 +2025,9 @@ def calc_E_UT_H_d_t__modeA(H_A, A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, region, L
       L_CS_d_t_i(ndarray): 冷房区画の冷房顕熱負荷
       L_CL_d_t_i(ndarray): 冷房区画の冷房潜熱負荷
       H_A: returns: 暖房設備の未処理暖房負荷の設計一次エネルギー消費量相当値（MJ/h）
+      type: 暖房設備機器の種類
+      input_C_af_H(dict): 室内機吹き出し風量に関する暖房出力補正係数に関する入力
+      input_C_af_C(dict): 室内機吹き出し風量に関する冷房出力補正係数に関する入力
 
     Returns:
       ndarray: 暖房設備の未処理暖房負荷の設計一次エネルギー消費量相当値（MJ/h）
@@ -2058,7 +2074,7 @@ def calc_E_UT_H_d_t__modeA(H_A, A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, region, L
 
     # 未処理負荷を取得
     Q_UT_H_A_d_t = calc_Q_UT_H_A_d_t(A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs_dsgn_H, V_hs_dsgn_C, Q,
-                     VAV, general_ventilation, duct_insulation, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i)
+                     VAV, general_ventilation, duct_insulation, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i, type, input_C_af_H, input_C_af_C)
 
     return Q_UT_H_A_d_t * alpha_UT_H_A
 
@@ -2350,7 +2366,7 @@ def calc_cooling_load(region, A_A, A_MR, A_OR, Q, mu_H, mu_C, NV_MR, NV_OR, r_A_
 # ---------------------------------------------------
 
 def calc_Q_UT_CS_A_d_t(A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs_dsgn_H, V_hs_dsgn_C, Q,
-                       VAV, general_ventilation, duct_insulation, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i):
+                       VAV, general_ventilation, duct_insulation, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i, type, input_C_af_H, input_C_af_C):
     """住戸全体を連続的に冷房する方式における冷房設備の未処理冷房顕熱負荷（MJ/h）(15)を取得する
 
     Args:
@@ -2375,6 +2391,9 @@ def calc_Q_UT_CS_A_d_t(A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_
       L_CS_d_t_i: param L_CL_d_t_i:
       L_H_d_t_i:
       L_CL_d_t_i:
+      type: 暖房設備機器の種類
+      input_C_af_H(dict): 室内機吹き出し風量に関する暖房出力補正係数に関する入力
+      input_C_af_C(dict): 室内機吹き出し風量に関する冷房出力補正係数に関する入力
 
     Returns:
       ndarray: 住戸全体を連続的に冷房する方式における冷房設備の未処理冷房顕熱負荷（MJ/h）
@@ -2383,14 +2402,14 @@ def calc_Q_UT_CS_A_d_t(A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_
     _, _, Q_UT_CS_d_t_i, _, _, _, _, _, _, _, _= dc.calc_Q_UT_A(A_A, A_MR, A_OR, r_env, mu_H, mu_C,
                                                                q_hs_rtd_H, q_hs_rtd_C, V_hs_dsgn_H, V_hs_dsgn_C, Q, VAV,
                                                                general_ventilation, duct_insulation, region,
-                                                               L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i)
+                                                               L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i, type, input_C_af_H, input_C_af_C)
     Q_UT_CS_A_d_t = np.sum(Q_UT_CS_d_t_i, axis=0)
 
     return Q_UT_CS_A_d_t
 
 
 def calc_Q_UT_CL_A_d_t(A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs_dsgn_H, V_hs_dsgn_C, Q,
-                       VAV, general_ventilation, duct_insulation, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i):
+                       VAV, general_ventilation, duct_insulation, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i, type, input_C_af_H, input_C_af_C):
     """住戸全体を連続的に冷房する方式における冷房設備の未処理冷房潜熱負荷（MJ/h）(16)を取得する
 
     Args:
@@ -2415,6 +2434,9 @@ def calc_Q_UT_CL_A_d_t(A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_
       L_CS_d_t_i: param L_CL_d_t_i:
       L_H_d_t_i:
       L_CL_d_t_i:
+      type: 暖房設備機器の種類
+      input_C_af_H(dict): 室内機吹き出し風量に関する暖房出力補正係数に関する入力
+      input_C_af_C(dict): 室内機吹き出し風量に関する冷房出力補正係数に関する入力
 
     Returns:
       ndarray: 住戸全体を連続的に冷房する方式における冷房設備の未処理冷房潜熱負荷（MJ/h）
@@ -2423,7 +2445,7 @@ def calc_Q_UT_CL_A_d_t(A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_
     _, _, _, Q_UT_CL_d_t_i, _, _, _, _, _, _, _= dc.calc_Q_UT_A(A_A, A_MR, A_OR, r_env, mu_H, mu_C,
                                                                q_hs_rtd_H, q_hs_rtd_C, V_hs_dsgn_H, V_hs_dsgn_C, Q, VAV,
                                                                general_ventilation, duct_insulation, region,
-                                                               L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i)
+                                                               L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i, type, input_C_af_H, input_C_af_C)
     Q_UT_CL_A_d_t = np.sum(Q_UT_CL_d_t_i, axis=0)
 
     return Q_UT_CL_A_d_t
@@ -2551,7 +2573,7 @@ def calc_Q_UT_CL_OR_d_t(**args):
 # 7.2 冷房設備のエネルギー消費量
 # ===================================================
 
-def calc_E_E_C_d_t(region, A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, q_hs_C_d_t, C_A=None, C_MR=None, C_OR=None, L_H_d_t=None,
+def calc_E_E_C_d_t(region, A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, q_hs_C_d_t, type, input_C_af_H, input_C_af_C, C_A=None, C_MR=None, C_OR=None, L_H_d_t=None,
                    L_CS_d_t=None, L_CL_d_t=None):
     """冷房設備の消費電力量（kWh/h） (21a)を取得する
 
@@ -2571,12 +2593,15 @@ def calc_E_E_C_d_t(region, A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, q_hs_C_d_t, C_
       L_H_d_t(ndarray, optional): 暖房区画の暖房負荷 (Default value = None)
       L_CS_d_t(ndarray, optional): 冷房区画の冷房顕熱負荷 (Default value = None)
       L_CL_d_t(ndarray, optional): 冷房区画の冷房潜熱負荷 (Default value = None)
+      type: 暖房設備機器の種類
+      input_C_af_H(dict): 室内機吹き出し風量に関する暖房出力補正係数に関する入力
+      input_C_af_C(dict): 室内機吹き出し風量に関する冷房出力補正係数に関する入力
 
     Returns:
       ndarray: 冷房設備の消費電力量（kWh/h）
 
     """
-    return calc_E_E_C_hs_d_t(region, A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, q_hs_C_d_t, C_A, C_MR, C_OR, L_H_d_t, L_CS_d_t, L_CL_d_t)
+    return calc_E_E_C_hs_d_t(region, A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, q_hs_C_d_t, C_A, C_MR, C_OR, L_H_d_t, L_CS_d_t, L_CL_d_t, type, input_C_af_H, input_C_af_C)
 
 
 def calc_E_G_C_d_t(**args):
@@ -2622,7 +2647,7 @@ def calc_E_M_C_d_t(**args):
 # 7.3 冷房設備機器のエネルギー消費量
 # ===================================================
 
-def calc_E_E_C_hs_d_t(type, region, A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, C_A, C_MR, C_OR, L_H_d_t, L_CS_d_t, L_CL_d_t, q_hs_C_d_t):
+def calc_E_E_C_hs_d_t(type, region, A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, C_A, C_MR, C_OR, L_H_d_t, L_CS_d_t, L_CL_d_t, q_hs_C_d_t, input_C_af_H, input_C_af_C):
     """冷房設備機器の消費電力量（kWh/h）(22a, 23a)を取得する
 
     Args:
@@ -2642,6 +2667,8 @@ def calc_E_E_C_hs_d_t(type, region, A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, C_A, 
       L_CS_d_t(ndarray): 冷房区画の冷房顕熱負荷
       L_CL_d_t(ndarray): 冷房区画の冷房潜熱負荷
       q_hs_C_d_t: 日付dの時刻tにおける1時間当たりの熱源機の平均暖房能力（-）
+      input_C_af_H(dict): 室内機吹き出し風量に関する暖房出力補正係数に関する入力
+      input_C_af_C(dict): 室内機吹き出し風量に関する冷房出力補正係数に関する入力
 
     Returns:
       ndarray: 冷房設備機器の消費電力量（kWh/h）
@@ -2715,7 +2742,7 @@ def calc_E_E_C_hs_d_t(type, region, A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, C_A, 
         X_hs_in_d_t, V_hs_supply_d_t, V_hs_vent_d_t, _ = dc.calc_Q_UT_A(A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H,
                                                                        q_hs_rtd_C, V_hs_dsgn_H, V_hs_dsgn_C, Q, VAV,
                                                                        general_ventilation, duct_insulation, region,
-                                                                       L_H_d_t, L_CS_d_t, L_CL_d_t)
+                                                                       L_H_d_t, L_CS_d_t, L_CL_d_t, type, input_C_af_H, input_C_af_C)
 
         E_E_C_d_t_i = dc_a.get_E_E_C_d_t(
             type=type,
@@ -2995,7 +3022,7 @@ def calc_E_M_C_hs_OR_d_t():
     return np.sum([rac.get_E_M_C_d_t() for i in range(2, 6)], axis=0)
 
 
-def calc_E_UT_C_d_t(region, A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, C_A, C_MR, C_OR, L_H_d_t, L_CS_d_t, L_CL_d_t, mode_C):
+def calc_E_UT_C_d_t(region, A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, C_A, C_MR, C_OR, L_H_d_t, L_CS_d_t, L_CL_d_t, mode_C, type, input_C_af_H, input_C_af_C):
     """冷房設備の未処理暖房負荷の設計一次エネルギー消費量相当値（MJ/h）を計算する
 
     Args:
@@ -3014,6 +3041,9 @@ def calc_E_UT_C_d_t(region, A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, C_A, C_MR, C_
       L_CL_d_t(ndarray): 冷房区画の冷房潜熱負荷
       mode_C(str): 冷房方式
       L_H_d_t: returns: 冷房設備の未処理暖房負荷の設計一次エネルギー消費量相当値（MJ/h）
+      type: 暖房設備機器の種類
+      input_C_af_H(dict): 室内機吹き出し風量に関する暖房出力補正係数に関する入力
+      input_C_af_C(dict): 室内機吹き出し風量に関する冷房出力補正係数に関する入力
 
     Returns:
       ndarray: 冷房設備の未処理暖房負荷の設計一次エネルギー消費量相当値（MJ/h）
@@ -3064,7 +3094,7 @@ def calc_E_UT_C_d_t(region, A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, C_A, C_MR, C_
 
         E_UT_C_d_t, _, _, _, _, _, \
         _, _, _, _, _ = dc.calc_Q_UT_A(A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs_dsgn_H, V_hs_dsgn_C, Q,
-             VAV, general_ventilation, duct_insulation, region, L_H_d_t, L_CS_d_t, L_CL_d_t)
+            VAV, general_ventilation, duct_insulation, region, L_H_d_t, L_CS_d_t, L_CL_d_t, type, input_C_af_H, input_C_af_C)
 
         E_UT_C_d_t = E_UT_C_d_t
 
