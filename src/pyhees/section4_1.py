@@ -2551,7 +2551,7 @@ def calc_Q_UT_CL_OR_d_t(**args):
 # 7.2 冷房設備のエネルギー消費量
 # ===================================================
 
-def calc_E_E_C_d_t(region, A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, C_A=None, C_MR=None, C_OR=None, L_H_d_t=None,
+def calc_E_E_C_d_t(region, A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, q_hs_C_d_t, C_A=None, C_MR=None, C_OR=None, L_H_d_t=None,
                    L_CS_d_t=None, L_CL_d_t=None):
     """冷房設備の消費電力量（kWh/h） (21a)を取得する
 
@@ -2564,6 +2564,7 @@ def calc_E_E_C_d_t(region, A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, C_A=None, C_MR
       mu_H(float): 当該住戸の暖房期の日射取得係数 ((W/m2)/(W/m2))
       mu_C(float): 当該住戸の冷房期の日射取得係数 ((W/m2)/(W/m2))
       Q(float): 当該住戸の熱損失係数 (W/m2K)
+      q_hs_C_d_t: 日付dの時刻tにおける1時間当たりの熱源機の平均暖房能力（-）
       C_A(dict, optional): 冷房方式 (Default value = None)
       C_MR(dict, optional): 主たる居室の冷房機器 (Default value = None)
       C_OR(dict, optional): その他の居室の冷房機器 (Default value = None)
@@ -2575,7 +2576,7 @@ def calc_E_E_C_d_t(region, A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, C_A=None, C_MR
       ndarray: 冷房設備の消費電力量（kWh/h）
 
     """
-    return calc_E_E_C_hs_d_t(region, A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, C_A, C_MR, C_OR, L_H_d_t, L_CS_d_t, L_CL_d_t)
+    return calc_E_E_C_hs_d_t(region, A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, q_hs_C_d_t, C_A, C_MR, C_OR, L_H_d_t, L_CS_d_t, L_CL_d_t)
 
 
 def calc_E_G_C_d_t(**args):
@@ -2621,7 +2622,7 @@ def calc_E_M_C_d_t(**args):
 # 7.3 冷房設備機器のエネルギー消費量
 # ===================================================
 
-def calc_E_E_C_hs_d_t(type, region, A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, C_A, C_MR, C_OR, L_H_d_t, L_CS_d_t, L_CL_d_t):
+def calc_E_E_C_hs_d_t(type, region, A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, C_A, C_MR, C_OR, L_H_d_t, L_CS_d_t, L_CL_d_t, q_hs_C_d_t):
     """冷房設備機器の消費電力量（kWh/h）(22a, 23a)を取得する
 
     Args:
@@ -2640,6 +2641,7 @@ def calc_E_E_C_hs_d_t(type, region, A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, C_A, 
       L_H_d_t(ndarray): 暖房区画の暖房負荷
       L_CS_d_t(ndarray): 冷房区画の冷房顕熱負荷
       L_CL_d_t(ndarray): 冷房区画の冷房潜熱負荷
+      q_hs_C_d_t: 日付dの時刻tにおける1時間当たりの熱源機の平均暖房能力（-）
 
     Returns:
       ndarray: 冷房設備機器の消費電力量（kWh/h）
@@ -2668,7 +2670,7 @@ def calc_E_E_C_hs_d_t(type, region, A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, C_A, 
             P_hs_rtd_C = dc_spec.get_P_hs_rtd_C(q_hs_rtd_C)
             V_fan_rtd_C = dc_spec.get_V_fan_rtd_C(q_hs_rtd_C)
             V_fan_mid_C = dc_spec.get_V_fan_mid_C(q_hs_mid_C)
-            P_fan_rtd_C = dc_spec.get_P_fan_rtd_C(V_fan_rtd_C)
+            P_fan_rtd_C = dc_spec.get_P_fan_rtd_C(type, V_fan_rtd_C, q_hs_C_d_t)
             P_fan_mid_C = dc_spec.get_P_fan_mid_C(V_fan_mid_C)
             P_hs_mid_C = np.NAN
         elif C_A['EquipmentSpec'] == '定格能力試験の値を入力する':

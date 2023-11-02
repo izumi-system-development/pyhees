@@ -1281,8 +1281,8 @@ def get_V_hs_vent_d_t(V_vent_g_i, general_ventilation):
 # ============================================================================
 # 9.7 VAV調整前の熱源機の風量
 # ============================================================================
-def get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t, region): #ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）_風量特性
-    """
+def get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t, region):
+    """ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）_風量特性
     Args:
       Q_hat_hs_d_t: 日付dの時刻tにおける１時間当たりの熱源機の風量を計算するための熱源機の出力（MJ/h）
       region: 地域区分
@@ -1295,21 +1295,32 @@ def get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t, region): #ルームエアコン�
 
     V_dash_hs_supply_d_t = np.zeros(24 * 365)
     # 暖房期：顕熱2.5kW未満
-    f1 = np.logical_and(H, Q_hat_hs_d_t < 2500)
+    Q_hat_hs_d_t_kw = Q_hat_hs_d_t / 3600 * 1000
+    f1 = np.logical_and(H, Q_hat_hs_d_t_kw < 2.5)
+    V_dash_hs_supply_d_t[f1] = constants.airvolume_coeff_minimum
     # 暖房期：顕熱2.5kW以上    
-    f2 = np.logical_and(H, Q_hat_hs_d_t >= 2500)
-    V_dash_hs_supply_d_t[f1] = 0.17
-    V_dash_hs_supply_d_t[f2] = 0.092 * Q_hat_hs_d_t - 0.06
+    f2 = np.logical_and(H, Q_hat_hs_d_t_kw >= 2.5)
+    V_dash_hs_supply_d_t[f2] =    ( \
+        constants.airvolume_coeff_a4_H * Q_hat_hs_d_t ** 4
+            + constants.airvolume_coeff_a3_H * Q_hat_hs_d_t ** 3 \
+            + constants.airvolume_coeff_a2_H * Q_hat_hs_d_t ** 2
+            + constants.airvolume_coeff_a1_H * Q_hat_hs_d_t \
+            + constants.airvolume_coeff_a0_H)[f2]
 
     # 冷房期：顕熱2.5kW未満
-    f3 = np.logical_and(C, Q_hat_hs_d_t < 2500)
+    f3 = np.logical_and(C, Q_hat_hs_d_t_kw < 2.5)
+    V_dash_hs_supply_d_t[f3] = constants.airvolume_coeff_minimum
     # 冷房期：顕熱2.5kW以上    
-    f4 = np.logical_and(C, Q_hat_hs_d_t >= 2500)
-    V_dash_hs_supply_d_t[f3] = 0.17
-    V_dash_hs_supply_d_t[f4] = 0.092 * Q_hat_hs_d_t - 0.06
+    f4 = np.logical_and(C, Q_hat_hs_d_t_kw >= 2.5)
+    V_dash_hs_supply_d_t[f4] =    ( \
+        constants.airvolume_coeff_a4_C * Q_hat_hs_d_t_kw ** 4
+            + constants.airvolume_coeff_a3_C * Q_hat_hs_d_t_kw ** 3 \
+            + constants.airvolume_coeff_a2_C * Q_hat_hs_d_t_kw ** 2
+            + constants.airvolume_coeff_a1_C * Q_hat_hs_d_t_kw \
+            + constants.airvolume_coeff_a0_C)[f4]
 
     # 中間期
-    V_dash_hs_supply_d_t[M] = 0.17
+    V_dash_hs_supply_d_t[M] = constants.airvolume_coeff_minimum
 
     return V_dash_hs_supply_d_t
 
