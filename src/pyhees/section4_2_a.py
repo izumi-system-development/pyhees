@@ -99,7 +99,7 @@ def calc_E_E_H_d_t(type, Theta_hs_out_d_t, Theta_hs_in_d_t, V_hs_supply_d_t, V_h
     q_hs_H_d_t = get_q_hs_H_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, V_hs_supply_d_t, C_df_H_d_t, region)
 
     # (37)
-    E_E_fan_H_d_t = get_E_E_fan_H_d_t(P_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t)
+    E_E_fan_H_d_t = get_E_E_fan_H_d_t(type, P_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t)
 
     # (20)
     e_th_mid_H = calc_e_th_mid_H(type, V_fan_mid_H, q_hs_mid_H, q_hs_rtd_C)
@@ -173,7 +173,7 @@ def get_E_E_C_d_t(type, Theta_hs_out_d_t, Theta_hs_in_d_t,  X_hs_out_d_t, X_hs_i
     q_hs_C_d_t = get_q_hs_C_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, region)
 
     # (38)
-    E_E_fan_C_d_t = get_E_E_fan_C_d_t(P_fan_rtd_C, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_C, q_hs_C_d_t)
+    E_E_fan_C_d_t = get_E_E_fan_C_d_t(type, P_fan_rtd_C, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_C, q_hs_C_d_t)
 
     # (22)
     e_th_mid_C = calc_e_th_mid_C(type, V_fan_mid_C, q_hs_mid_C, q_hs_rtd_C)
@@ -1416,7 +1416,7 @@ def get_A_e_hex(type, q_hs_rtd_C):
 # A.6 送風機
 # ============================================================================
 
-def get_E_E_fan_H_d_t(P_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t, f_SFP = None):
+def get_E_E_fan_H_d_t(type, P_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t, f_SFP = None):
     """(37)
 
     Args:
@@ -1426,18 +1426,36 @@ def get_E_E_fan_H_d_t(P_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, 
       q_hs_H_d_t: 日付dの時刻tにおける1時間当たりの熱源機の平均暖房能力（-）
       V_hs_dsgn_H: returns: 日付dの時刻tにおける1時間当たりの送風機の消費電力量のうちの暖房設備への付加分（kWh/h）
       f_SFP: ファンの比消費電力 (W/(m3・h))
+      type: 暖房設備の種類
 
     Returns:
       日付dの時刻tにおける1時間当たりの送風機の消費電力量のうちの暖房設備への付加分（kWh/h）
 
     """
     f_SFP = get_f_SFP(f_SFP)
-    E_E_fan_H_d_t = np.zeros(24 * 365)
 
-    a = (P_fan_rtd_H - f_SFP * V_hs_vent_d_t) \
-        * ((V_hs_supply_d_t - V_hs_vent_d_t) / (V_hs_dsgn_H - V_hs_vent_d_t)) * 10 ** (-3)
+    if type == constants.PROCESS_TYPE_1 or type == constants.PROCESS_TYPE_2:
 
-    E_E_fan_H_d_t[q_hs_H_d_t > 0] = np.clip(a[q_hs_H_d_t > 0], 0, None)
+        fx = (P_fan_rtd_H - f_SFP * V_hs_vent_d_t) \
+            * ((V_hs_supply_d_t - V_hs_vent_d_t) / (V_hs_dsgn_H - V_hs_vent_d_t)) * 10 ** (-3)
+
+        E_E_fan_H_d_t = np.zeros(24 * 365)
+        E_E_fan_H_d_t[q_hs_H_d_t > 0] = np.clip(fx[q_hs_H_d_t > 0], 0, None)
+
+    elif type == constants.PROCESS_TYPE_3:
+        x = q_hs_H_d_t / 1000  # WARNING: 例外的に四次式では kW 単位で計算しています
+        P_fan_H_d_t = constants.P_fan_H_d_t_a4 * x**4  \
+                    + constants.P_fan_H_d_t_a3 * x**3  \
+                    + constants.P_fan_H_d_t_a2 * x**2  \
+                    + constants.P_fan_H_d_t_a1 * x  \
+                    + constants.P_fan_H_d_t_a0
+
+        fx = (P_fan_H_d_t - f_SFP * V_hs_vent_d_t) * 10 ** (-3)
+
+        E_E_fan_H_d_t = np.zeros(24 * 365)
+        E_E_fan_H_d_t[q_hs_H_d_t > 0] = np.clip(fx[q_hs_H_d_t > 0], 0, None)
+    else:
+        raise Exception('暖房設備機器の種類の入力が不正です。')
 
     return E_E_fan_H_d_t
 
@@ -1467,10 +1485,11 @@ def get_e_rtd_C():
     e_rtd_C = 3.17
     return e_rtd_C
 
-def get_E_E_fan_C_d_t(P_fan_rtd_C, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_C, q_hs_C_d_t, f_SFP = None):
+def get_E_E_fan_C_d_t(type, P_fan_rtd_C, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_C, q_hs_C_d_t, f_SFP = None):
     """(38)
 
     Args:
+      type: 冷房設備の種類
       P_fan_rtd_C: 定格冷房能力運転時の送風機の消費電力（W）
       V_hs_vent_d_t: 日付dの時刻tにおける熱源機の風量のうちの全般換気分（m3/h）
       V_hs_supply_d_t: param V_hs_dsgn_C:冷房時の設計風量（m3/h）
@@ -1483,12 +1502,29 @@ def get_E_E_fan_C_d_t(P_fan_rtd_C, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_C, 
 
     """
     f_SFP = get_f_SFP(f_SFP)
-    E_E_fan_C_d_t = np.zeros(24 * 365)
 
-    a = (P_fan_rtd_C - f_SFP * V_hs_vent_d_t) \
-        * ((V_hs_supply_d_t - V_hs_vent_d_t) / (V_hs_dsgn_C - V_hs_vent_d_t)) * 10 ** (-3)
+    if type == constants.PROCESS_TYPE_1 or type == constants.PROCESS_TYPE_2:
 
-    E_E_fan_C_d_t[q_hs_C_d_t > 0] = np.clip(a[q_hs_C_d_t > 0], 0, None)
+        fx = (P_fan_rtd_C - f_SFP * V_hs_vent_d_t) \
+            * ((V_hs_supply_d_t - V_hs_vent_d_t) / (V_hs_dsgn_C - V_hs_vent_d_t)) * 10 ** (-3)
+
+        E_E_fan_C_d_t = np.zeros(24 * 365)
+        E_E_fan_C_d_t[q_hs_C_d_t > 0] = np.clip(fx[q_hs_C_d_t > 0], 0, None)
+
+    elif type == constants.PROCESS_TYPE_3:
+        x = q_hs_C_d_t / 1000  # WARNING: 例外的に四次式では kW 単位で計算しています
+        P_fan_C_d_t = constants.P_fan_C_d_t_a4 * x**4  \
+                    + constants.P_fan_C_d_t_a3 * x**3  \
+                    + constants.P_fan_C_d_t_a2 * x**2  \
+                    + constants.P_fan_C_d_t_a1 * x  \
+                    + constants.P_fan_C_d_t_a0
+
+        fx = (P_fan_C_d_t - f_SFP * V_hs_vent_d_t) * 10 ** (-3)
+
+        E_E_fan_C_d_t = np.zeros(24 * 365)
+        E_E_fan_C_d_t[q_hs_C_d_t > 0] = np.clip(fx[q_hs_C_d_t > 0], 0, None)
+    else:
+        raise Exception('冷房設備機器の種類の入力が不正です。')
 
     return E_E_fan_C_d_t
 

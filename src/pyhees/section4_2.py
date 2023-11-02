@@ -1317,27 +1317,31 @@ def get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t, region):
     V_dash_hs_supply_d_t = np.zeros(24 * 365)
     # 暖房期：顕熱2.5kW未満
     Q_hat_hs_d_t_kw = Q_hat_hs_d_t / 3600 * 1000
+
+    del Q_hat_hs_d_t  # NOTE: 誤用を防ぐ目的で単位変換前を削除
+
+    # 暖房期：顕熱2.5kW未満
     f1 = np.logical_and(H, Q_hat_hs_d_t_kw < 2.5)
     V_dash_hs_supply_d_t[f1] = constants.airvolume_coeff_minimum
-    # 暖房期：顕熱2.5kW以上    
+    # 暖房期：顕熱2.5kW以上
     f2 = np.logical_and(H, Q_hat_hs_d_t_kw >= 2.5)
-    V_dash_hs_supply_d_t[f2] =    ( \
-        constants.airvolume_coeff_a4_H * Q_hat_hs_d_t ** 4
-            + constants.airvolume_coeff_a3_H * Q_hat_hs_d_t ** 3 \
-            + constants.airvolume_coeff_a2_H * Q_hat_hs_d_t ** 2
-            + constants.airvolume_coeff_a1_H * Q_hat_hs_d_t \
+    V_dash_hs_supply_d_t[f2] =  \
+        (constants.airvolume_coeff_a4_H * Q_hat_hs_d_t_kw ** 4
+            + constants.airvolume_coeff_a3_H * Q_hat_hs_d_t_kw ** 3
+            + constants.airvolume_coeff_a2_H * Q_hat_hs_d_t_kw ** 2
+            + constants.airvolume_coeff_a1_H * Q_hat_hs_d_t_kw
             + constants.airvolume_coeff_a0_H)[f2]
 
     # 冷房期：顕熱2.5kW未満
     f3 = np.logical_and(C, Q_hat_hs_d_t_kw < 2.5)
     V_dash_hs_supply_d_t[f3] = constants.airvolume_coeff_minimum
-    # 冷房期：顕熱2.5kW以上    
+    # 冷房期：顕熱2.5kW以上
     f4 = np.logical_and(C, Q_hat_hs_d_t_kw >= 2.5)
-    V_dash_hs_supply_d_t[f4] =    ( \
-        constants.airvolume_coeff_a4_C * Q_hat_hs_d_t_kw ** 4
-            + constants.airvolume_coeff_a3_C * Q_hat_hs_d_t_kw ** 3 \
+    V_dash_hs_supply_d_t[f4] =  \
+        (constants.airvolume_coeff_a4_C * Q_hat_hs_d_t_kw ** 4
+            + constants.airvolume_coeff_a3_C * Q_hat_hs_d_t_kw ** 3
             + constants.airvolume_coeff_a2_C * Q_hat_hs_d_t_kw ** 2
-            + constants.airvolume_coeff_a1_C * Q_hat_hs_d_t_kw \
+            + constants.airvolume_coeff_a1_C * Q_hat_hs_d_t_kw
             + constants.airvolume_coeff_a0_C)[f4]
 
     # 中間期
