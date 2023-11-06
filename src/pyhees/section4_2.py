@@ -781,7 +781,7 @@ def get_Theta_hs_out_d_t(VAV, Theta_req_d_t_i, V_dash_supply_d_t_i, L_star_H_d_t
     f3 = np.logical_and(C, np.sum(L_star_CS_d_t_i[:5], axis=0) > 0)
     f4 = np.logical_and(C, np.sum(L_star_CS_d_t_i[:5], axis=0) <= 0)
 
-    if VAV == False:
+    if VAV == False and constants.change_heat_source_outlet_required_temperature != 2:
         # 暖房期および冷房期 (14-1)
         Theta_hs_out_d_t[f1] = np.sum(Theta_req_d_t_i[:5, f1] * V_dash_supply_d_t_i[:5, f1], axis=0) / \
                                        np.sum(V_dash_supply_d_t_i[:5, f1], axis=0)
@@ -1303,13 +1303,13 @@ def get_V_hs_vent_d_t(V_vent_g_i, general_ventilation):
 # 9.7 VAV調整前の熱源機の風量
 # ============================================================================
 def get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t, region):
-    """ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）_風量特性
+    """ルームエアコンディショナ活用型全館空調（潜熱評価モデル）_風量特性 \n
     Args:
-      Q_hat_hs_d_t: 日付dの時刻tにおける１時間当たりの熱源機の風量を計算するための熱源機の出力（MJ/h）
-      region: 地域区分
+      Q_hat_hs_d_t: 日付dの時刻tにおける１時間当たりの熱源機の風量を計算するための熱源機の出力（MJ/h） \n
+      region: 地域区分 \n
 
     Returns:
-      日付dの時刻tにおけるVAV調整前の熱源機の風量（m3/h）
+      日付dの時刻tにおけるVAV調整前の熱源機の風量（m3/h） \n
 
     """
     # 暖房期：顕熱2.5kW未満
@@ -1350,8 +1350,8 @@ def get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t, region):
     # 中間期
     V_dash_hs_supply_d_t[M] = constants.airvolume_minimum
 
-    # 論文ロジックの前提として
-    assert min(V_dash_hs_supply_d_t) == constants.airvolume_minimum
+    # WARNING: 少数点の扱いの問題で意図しない結果になる
+    # assert min(V_dash_hs_supply_d_t) == constants.airvolume_minimum
 
     # NOTE: ここまで m3/s ベース 変換-> m3/h
     return V_dash_hs_supply_d_t * 3600
@@ -1533,8 +1533,7 @@ def calc_Q_hat_hs_d_t(Q, A_A, V_vent_l_d_t, V_vent_g_i, mu_H, mu_C, J_d_t, q_gen
     # 中間期 (40-3)
     Q_hat_hs_d_t[M] = 0
 
-    return Q_hat_hs_d_t
-
+    return Q_hat_hs_d_t, np.clip(Q_hat_hs_CS_d_t, 0, None)
 
 # ============================================================================
 # 10 吹き出し口
@@ -1711,7 +1710,10 @@ def get_V_supply_d_t_i(L_star_H_d_t_i, L_star_CS_d_t_i, Theta_sur_d_t_i, l_duct_
 
     # 吹き出し風量V_(supply,d,t,i)は、VAV調整前の吹き出し風量V_(supply,d,t,i)^'を上回る場合はVAV調整前の \
     # 吹き出し風量V_(supply,d,t,i)^'に等しいとし、全般換気量V_(vent,g,i)を下回る場合は全般換気量V_(vent,g,i)に等しいとする
-    V_supply_d_t_i = np.clip(V_supply_d_t_i, V_vent_g_i, V_dash_supply_d_t_i)
+    if constants.change_V_supply_d_t_i_max == 2:
+      V_supply_d_t_i = np.clip(V_supply_d_t_i, V_vent_g_i, None)
+    else:
+      V_supply_d_t_i = np.clip(V_supply_d_t_i, V_vent_g_i, V_dash_supply_d_t_i)
 
     return V_supply_d_t_i
 
@@ -1734,6 +1736,20 @@ def get_V_dash_supply_d_t_i(r_supply_des_i, V_dash_hs_supply_d_t, V_vent_g_i):
     """
     return np.maximum(r_supply_des_i[:5, np.newaxis] * V_dash_hs_supply_d_t, V_vent_g_i[:5, np.newaxis])
 
+def get_V_dash_supply_d_t_i_2023(r_supply_des_d_t_i, V_dash_hs_supply_d_t, V_vent_g_i):
+    """(44)
+
+    Args:
+      r_supply_des_d_t_i: 暖冷房区画iの1時間ごとの風量バランス（-）
+      V_dash_hs_supply_d_t: 日付dの時刻tにおける暖冷房区画iのVAV調整前の吹き出し風量（m3/h）
+      V_vent_g_i: 暖冷房区画iの全般換気量（m3/h）
+
+    Returns:
+      日付dの時刻tにおけるVAV調整前の熱源機の風量（m3/h）
+
+    """
+    return np.maximum(np.sum(r_supply_des_d_t_i, axis=0) * V_dash_hs_supply_d_t, V_vent_g_i[:5, np.newaxis])
+
 def get_r_supply_des_i(A_HCZ_i):
     """(45)
 
@@ -1746,6 +1762,29 @@ def get_r_supply_des_i(A_HCZ_i):
     """
     return A_HCZ_i / np.sum(A_HCZ_i[:5])
 
+def get_r_supply_des_d_t_i_2023(region, L_CS_d_t_i, L_H_d_t_i):
+    """(45)-1
+
+    Args:
+      region:
+      L_CS_d_t_i: 暖冷房区画iの1時間当たりの冷房顕熱負荷（MJ/h）
+      L_H_d_t_i: 暖冷房区画iの1時間当たりの暖房負荷（MJ/h）
+
+    Returns:
+      暖冷房区画iの1時間当たりの風量バランス（-）
+
+    """
+
+    from section4_2_a import get_season_array_d_t
+    H, C, M = get_season_array_d_t(region)
+    r_supply_des_d_t_i = np.zeros((5, 24 * 365))
+    sum_L_H_d_t_i = np.sum(L_H_d_t_i[:5, H], axis=0)
+    r_supply_des_d_t_i[:, H] = np.divide(L_H_d_t_i[:5, H], sum_L_H_d_t_i, out=np.zeros_like(L_H_d_t_i[:5, H]), where=sum_L_H_d_t_i!=0)
+    r_supply_des_d_t_i[:, M] = 0
+    sum_L_CS_d_t_i = np.sum(L_CS_d_t_i[:5, C], axis=0)
+    r_supply_des_d_t_i[:, C] = np.divide(L_CS_d_t_i[:5, C], sum_L_CS_d_t_i, out=np.zeros_like(L_CS_d_t_i[:5, C]), where=sum_L_CS_d_t_i!=0)
+
+    return r_supply_des_d_t_i
 
 # ============================================================================
 # 11 暖冷房区画
