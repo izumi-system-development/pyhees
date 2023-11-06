@@ -1312,19 +1312,20 @@ def get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t, region):
       日付dの時刻tにおけるVAV調整前の熱源機の風量（m3/h）
 
     """
-    H, C, M = get_season_array_d_t(region)
-
-    V_dash_hs_supply_d_t = np.zeros(24 * 365)
     # 暖房期：顕熱2.5kW未満
     Q_hat_hs_d_t_kw = Q_hat_hs_d_t / 3600 * 1000
 
     del Q_hat_hs_d_t  # NOTE: 誤用を防ぐ目的で単位変換前を削除
 
-    # 暖房期：顕熱2.5kW未満
-    f1 = np.logical_and(H, Q_hat_hs_d_t_kw < 2.5)
-    V_dash_hs_supply_d_t[f1] = constants.airvolume_coeff_minimum
-    # 暖房期：顕熱2.5kW以上
-    f2 = np.logical_and(H, Q_hat_hs_d_t_kw >= 2.5)
+    H, C, M = get_season_array_d_t(region)
+    V_dash_hs_supply_d_t = np.zeros(24 * 365)
+
+    # 暖房期
+    f1 = np.logical_and(H, Q_hat_hs_d_t_kw < 2.5)   # 顕熱2.5kW未満
+    f2 = np.logical_and(H, Q_hat_hs_d_t_kw >= 2.5)  # 顕熱2.5kW以上
+    assert np.count_nonzero(H) == sum(map(np.count_nonzero, [f1, f2]))
+
+    V_dash_hs_supply_d_t[f1] = constants.airvolume_minimum
     V_dash_hs_supply_d_t[f2] =  \
         (constants.airvolume_coeff_a4_H * Q_hat_hs_d_t_kw ** 4
             + constants.airvolume_coeff_a3_H * Q_hat_hs_d_t_kw ** 3
@@ -1332,11 +1333,13 @@ def get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t, region):
             + constants.airvolume_coeff_a1_H * Q_hat_hs_d_t_kw
             + constants.airvolume_coeff_a0_H)[f2]
 
-    # 冷房期：顕熱2.5kW未満
-    f3 = np.logical_and(C, Q_hat_hs_d_t_kw < 2.5)
-    V_dash_hs_supply_d_t[f3] = constants.airvolume_coeff_minimum
-    # 冷房期：顕熱2.5kW以上
-    f4 = np.logical_and(C, Q_hat_hs_d_t_kw >= 2.5)
+    # 冷房期
+    f3 = np.logical_and(C, Q_hat_hs_d_t_kw < 2.5)   # 顕熱2.5kW未満
+    f4 = np.logical_and(C, Q_hat_hs_d_t_kw >= 2.5)  # 顕熱2.5kW以上
+    assert np.count_nonzero(C) == sum(map(np.count_nonzero, [f3, f4]))
+
+    V_dash_hs_supply_d_t[f3] = constants.airvolume_minimum
+
     V_dash_hs_supply_d_t[f4] =  \
         (constants.airvolume_coeff_a4_C * Q_hat_hs_d_t_kw ** 4
             + constants.airvolume_coeff_a3_C * Q_hat_hs_d_t_kw ** 3
@@ -1345,9 +1348,13 @@ def get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t, region):
             + constants.airvolume_coeff_a0_C)[f4]
 
     # 中間期
-    V_dash_hs_supply_d_t[M] = constants.airvolume_coeff_minimum
+    V_dash_hs_supply_d_t[M] = constants.airvolume_minimum
 
-    return V_dash_hs_supply_d_t
+    # 論文ロジックの前提として
+    assert min(V_dash_hs_supply_d_t) == constants.airvolume_minimum
+
+    # NOTE: ここまで m3/s ベース 変換-> m3/h
+    return V_dash_hs_supply_d_t * 3600
 
 def get_V_dash_hs_supply_d_t(V_hs_min, V_hs_dsgn_H, V_hs_dsgn_C, Q_hs_rtd_H, Q_hs_rtd_C, Q_hat_hs_d_t, region):
     """(36-1)(36-2)(36-3)
