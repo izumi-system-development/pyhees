@@ -1775,7 +1775,7 @@ def get_r_supply_des_d_t_i_2023(region, L_CS_d_t_i, L_H_d_t_i):
 
     """
 
-    from section4_2_a import get_season_array_d_t
+    from pyhees.section4_2_a import get_season_array_d_t
     H, C, M = get_season_array_d_t(region)
     r_supply_des_d_t_i = np.zeros((5, 24 * 365))
     sum_L_H_d_t_i = np.sum(L_H_d_t_i[:5, H], axis=0)

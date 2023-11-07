@@ -87,11 +87,8 @@ def calc_E_E_H_d_t(type, Theta_hs_out_d_t, Theta_hs_in_d_t, V_hs_supply_d_t, V_h
 
     """
 
-    # TODO: 不要なら消す
     # 外気条件
-    outdoor = load_outdoor()
     climate = load_climate(region)
-    Theta_ex_d_t = get_Theta_ex(region, outdoor)
     Theta_ex_d_t = get_Theta_ex(climate)
 
     # (3)

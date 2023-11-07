@@ -214,12 +214,6 @@ def calc_E_E_H_d_t(region, q_rtd_C, q_rtd_H, q_max_C, q_max_H, e_rtd_H, dualcomp
     """
     # 外気条件
     if outdoorFile == '-':
-        # TODO: outdoor から climate への移行.不要なら消す
-        # outdoor = load_outdoor()
-        # Theta_ex = get_Theta_ex(region, outdoor)
-        # X_ex = get_X_ex(region, outdoor)
-        # h_ex = calc_h_ex(X_ex, Theta_ex)
-
         climate = load_climate(region)
         Theta_ex = get_Theta_ex(climate)
         X_ex = get_X_ex(climate)
@@ -274,11 +268,6 @@ def calc_Q_UT_H_d_t(region, q_rtd_C, q_rtd_H, e_rtd_H, L_H_d_t, input_C_af_H):
       ndarray: 未処理負荷
 
     """
-    # CHECK: 不要なら消す
-    # outdoor = load_outdoor()
-    # Theta_ex = get_Theta_ex(region, outdoor)
-    # X_ex = get_X_ex(region, outdoor)
-
     # 外気条件
     climate = load_climate(region)
     Theta_ex = get_Theta_ex(climate)
@@ -960,12 +949,6 @@ def calc_E_E_C_d_t(region, q_rtd_C, q_max_C, e_rtd_C, dualcompressor, L_CS_d_t, 
     """
     # 外気条件
     if outdoorFile == '-':
-        # TODO: outdoor から climate への移行.不要なら消す
-        # outdoor = load_outdoor()
-        # Theta_ex = get_Theta_ex(region, outdoor)
-        # X_ex = get_X_ex(region, outdoor)
-        # h_ex = calc_h_ex(X_ex, Theta_ex)
-
         climate = load_climate(region)
         Theta_ex = get_Theta_ex(climate)
         X_ex = get_X_ex(climate)

@@ -11,7 +11,7 @@ import sys
 
 sys.path.append(path.dirname(__file__))
 print(sys.path)
-from .test_utils.utils import *
+from test_utils.utils import *
 
 class Test既存計算維持_デフォルト入力時:
 
@@ -21,10 +21,14 @@ class Test既存計算維持_デフォルト入力時:
     # print(INPUT_SAMPLE_TYPE1_PATH)
     # print(pardir(path.dirname(__file__)))
     # print(INPUT_SAMPLE_TYPE1_PATH)
-    _inputs1: dict = json.load(open(path.join(path.dirname(__file__), INPUT_SAMPLE_TYPE1_PATH), 'r'))
-    _inputs2: dict = json.load(open(path.join(path.dirname(__file__), INPUT_SAMPLE_TYPE2_PATH), 'r'))
-    _inputs3: dict = json.load(open(path.join(path.dirname(__file__), INPUT_SAMPLE_TYPE3_PATH), 'r'))
-    _inputs4: dict = json.load(open(path.join(path.dirname(__file__), INPUT_SAMPLE_TYPE4_PATH), 'r'))
+
+    _inputs1: dict = json.load(open(INPUT_SAMPLE_TYPE1_PATH, 'r'))
+    _inputs2: dict = json.load(open(INPUT_SAMPLE_TYPE2_PATH, 'r'))
+    _inputs3: dict = json.load(open(INPUT_SAMPLE_TYPE3_PATH, 'r'))
+    _inputs4: dict = json.load(open(INPUT_SAMPLE_TYPE4_PATH, 'r'))
+
+    # _inputs2: dict = json.load(open(path.join(path.pardir, INPUT_SAMPLE_TYPE2_PATH), 'r'))
+    # _inputs2: dict = json.load(open(path.join(path.dirname(__file__), INPUT_SAMPLE_TYPE2_PATH), 'r'))
 
     def fix_latent_bug(self, inputs: dict) -> dict:
         """ 潜熱バグ修正時の計算結果を確認したい時に使用する

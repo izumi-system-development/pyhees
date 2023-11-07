@@ -4,9 +4,12 @@ from inspect import stack
 import numpy as np
 import datetime
 
+from os import path
+
 LOG_LEVEL = logging.DEBUG  # NOTE: 調査に合わせて変更する
 
-LOG_PATH = Path('./logs/test.log')  # NOTE: プロジェクトルートからのパス
+# LOG_PATH = path.join(path.dirname(path.dirname(__file__)), '/logs/test.log')
+LOG_PATH = Path('./logs/test.log')  # NOTE: テスト実行時のルートからのパス
 # HACK: 現在は単一のファイルを使いまわします
 
 FORMAT = logging.Formatter('%(message)s')

@@ -50,8 +50,8 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
 
     if outdoorFile == '-':
         outdoor = load_outdoor()
-        Theta_ex_d_t = get_Theta_ex(region, outdoor)
-        X_ex_d_t = get_X_ex(region, outdoor)
+        Theta_ex_d_t = get_Theta_ex(climate)
+        X_ex_d_t = get_X_ex(climate)
     else:
         outdoor = pd.read_csv(outdoorFile, skiprows=4, nrows=24 * 365,
             names=('day', 'hour', 'holiday', 'Theta_ex_1', 'X_ex_1'))

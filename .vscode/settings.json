@@ -1,11 +1,8 @@
 {
-    "python.testing.pytestArgs": [
-        "src/tests"  // test ファイルの位置
-    ],
-    "python.analysis.extraPaths": [
-        "src", "src/jjjexperiment"
-    ],
-    "python.terminal.executeInFileDir": true,  // 相対パスでimport可能
+    "python.analysis.extraPaths": ["src", "src/jjjexperiment"],
     "python.testing.unittestEnabled": false,
-    "python.testing.pytestEnabled": true
+    "python.testing.pytestEnabled": true,
+    "python.testing.cwd": "/workspaces/pyhees/src",
+    "python.terminal.executeInFileDir": false,  // 相対パスでimport可能
+    // "python.testing.pytestArgs": ["tests"]
 }

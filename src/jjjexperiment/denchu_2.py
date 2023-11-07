@@ -4,7 +4,7 @@ import pandas as pd
 from jjjexperiment.denchu_1 import *
 
 from pyhees.section11_1 import \
-    load_outdoor, get_Theta_ex, get_X_ex
+    load_outdoor, get_Theta_ex, get_X_ex, load_climate
 
 from jjjexperiment.logger import LimitedLoggerAdapter as _logger  # デバッグ用ロガー
 
@@ -118,9 +118,10 @@ def calc_COP_C_d_t(q_d_t, P_rac_fan_rtd, R,
     """ 外気条件(時系列変化) 6.1 (5) 同様 """
 
     if outdoorFile == '-':
-        outdoor = load_outdoor()
-        Theta_ex = get_Theta_ex(region, outdoor)
-        X_ex = get_X_ex(region, outdoor)
+        climate = load_climate(region)
+        #outdoor = load_outdoor()
+        Theta_ex = get_Theta_ex(climate)
+        X_ex = get_X_ex(climate)
     else:
         outdoor = pd.read_csv(outdoorFile, skiprows=4, nrows=24 * 365,
             names=('day', 'hour', 'holiday', 'Theta_ex_1', 'X_ex_1'))
@@ -159,9 +160,9 @@ def calc_COP_H_d_t(q_d_t, P_rac_fan_rtd, R,
     """ 外気条件(時系列変化) 6.1 (5) 同様 """
 
     if outdoorFile == '-':
-        outdoor = load_outdoor()
-        Theta_ex = get_Theta_ex(region, outdoor)
-        X_ex = get_X_ex(region, outdoor)
+        climate = load_climate(region)
+        Theta_ex = get_Theta_ex(climate)
+        X_ex = get_X_ex(climate)
     else:
         outdoor = pd.read_csv(outdoorFile, skiprows=4, nrows=24 * 365,
             names=('day', 'hour', 'holiday', 'Theta_ex_1', 'X_ex_1'))

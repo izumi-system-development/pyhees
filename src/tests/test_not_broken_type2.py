@@ -6,7 +6,7 @@ import math
 from jjjexperiment.main import calc
 from os import path
 
-from .test_utils.utils import  \
+from test_utils.utils import  \
     expected_inputs, expected_result_type2, INPUT_SAMPLE_TYPE2_PATH
 
 class Test既存計算維持_入力値切替_方式2:

@@ -17,7 +17,7 @@ from pyhees.section4_2 \
 from pyhees.section4_2_a \
     import get_A_f_hex, get_A_e_hex, get_alpha_c_hex_C, get_alpha_c_hex_H, get_E_E_fan_H_d_t, get_E_E_fan_C_d_t, get_q_hs_C_d_t, get_q_hs_H_d_t
 
-from .test_utils.utils import INPUT_SAMPLE_TYPE3_PATH
+from test_utils.utils import INPUT_SAMPLE_TYPE3_PATH
 
 
 class Testコイル特性:
