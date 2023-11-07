@@ -12,6 +12,7 @@ import pyhees.section3_1 as ld
 from pyhees.section3_1_a import calc_etr_dash_t
 
 from pyhees.section4_1_a import calc_heating_mode, get_default_heating_spec, get_default_heatsource
+from pyhees.section4_1_Q import get_Q_T_CS_d_t_i, get_Q_T_CL_d_t_i, get_Q_UT_CS_d_t_i, get_Q_UT_CL_d_t_i
 
 import pyhees.section9_3 as ass
 

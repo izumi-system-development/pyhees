@@ -3010,13 +3010,13 @@ def get_Theta():
 # デバッグ用コード
 # ============================================================================
 if __name__ == '__main__':
-    from section11_1 import load_outdoor
-    from section2_2 import get_E_H_d_t, get_E_C_d_t
-    from section3_1 import get_Q
-    from section3_2 import calc_r_env, get_Q_dash, get_mu_H, get_mu_C
-    from section4_1 import calc_heating_load, calc_cooling_load, calc_E_UT_H_d_t
-    from section4_2_a import get_q_hs_H_d_t, get_q_hs_C_d_t
-    import section4_2_b as dc_spec
+    from pyhees.section11_1 import load_outdoor
+    from pyhees.section2_2 import get_E_H_d_t, get_E_C_d_t
+    from pyhees.section3_1 import get_Q
+    from pyhees.section3_2 import calc_r_env, get_Q_dash, get_mu_H, get_mu_C
+    from pyhees.section4_1 import calc_heating_load, calc_cooling_load, calc_E_UT_H_d_t
+    from pyhees.section4_2_a import get_q_hs_H_d_t, get_q_hs_C_d_t
+    import pyhees.section4_2_b as dc_spec
     import pandas as pd
     import numpy as np
 
@@ -3123,7 +3123,7 @@ if __name__ == '__main__':
 
         # 未処理冷房負荷の一次エネ相当および熱源機の入口における空気温度
         E_C_UT_d_t, _, _, _, Theta_hs_out_d_t, Theta_hs_in_d_t, \
-        X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, _, C_df_H_d_t = get_Q_UT_A(A_A, A_MR, A_OR, r_env, mu_H, mu_C,
+        X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, _, C_df_H_d_t = calc_Q_UT_A(A_A, A_MR, A_OR, r_env, mu_H, mu_C,
                                                                                q_hs_rtd_H, q_hs_rtd_C, V_hs_dsgn_H,
                                                                                V_hs_dsgn_C, Q, VAV, general_ventilation,
                                                                                duct_insulation, region, L_H_d_t_i,
