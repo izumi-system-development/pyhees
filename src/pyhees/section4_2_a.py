@@ -123,7 +123,7 @@ def calc_E_E_H_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, V_hs_supply_d_t, V_hs_vent
 
 
 # 日付dの時刻tにおける1時間当たりの冷房時の消費電力量（kWh/h）(2)
-def get_E_E_C_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t,  X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, V_hs_vent_d_t,
+def calc_E_E_C_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t,  X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, V_hs_vent_d_t,
                   q_hs_rtd_C, V_hs_dsgn_C, q_hs_mid_C, q_hs_min_C,
                   P_fan_rtd_C, P_fan_mid_C, P_hs_rtd_C, P_hs_mid_C, V_fan_rtd_C, V_fan_mid_C, EquipmentSpec, region):
     """

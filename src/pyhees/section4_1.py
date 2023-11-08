@@ -2708,7 +2708,7 @@ def calc_E_E_C_hs_d_t(region, A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, C_A, C_MR, 
                                                                        general_ventilation, duct_insulation, region,
                                                                        L_H_d_t, L_CS_d_t, L_CL_d_t)
 
-        E_E_C_d_t_i = dc_a.get_E_E_C_d_t(
+        E_E_C_d_t_i = dc_a.calc_E_E_C_d_t(
             Theta_hs_out_d_t=Theta_hs_out_d_t,
             Theta_hs_in_d_t=Theta_hs_in_d_t,
             X_hs_out_d_t=X_hs_out_d_t,
