@@ -1,0 +1,15 @@
+{
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true,
+    // "python.terminal.executeInFileDir": true,
+    "python.autoComplete.extraPaths": [
+        "/workspaces/pyhees/src",
+        "/workspaces/pyhees/src/pyhees"
+    ],
+    "python.analysis.extraPaths": [
+        "/workspaces/pyhees/src",
+        "/workspaces/pyhees/src/pyhees"
+    ],
+    // NOTE: cwd 使うと src 内の import が変 -> tests 親に置けば cwd 不要
+    // "python.testing.cwd": "/workspaces/pyhees"
+}
