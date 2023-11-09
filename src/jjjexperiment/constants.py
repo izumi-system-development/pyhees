@@ -16,6 +16,8 @@ defrost_humid_ductcentral: float = 80
 """デフロスト発生外気相対湿度（ダクトセントラル空調機）"""
 phi_i: float = 0.49
 """ダクトiの線熱損失係数"""
+R_g: float = 0.15
+"""地盤またはそれを覆う基礎の表面熱伝達抵抗 ((m2・K)/W)"""
 C_V_fan_dsgn_H: float = 0.79
 """暖房時の送風機の設計風量に関する係数"""
 C_V_fan_dsgn_C: float = 0.79
@@ -153,6 +155,9 @@ def set_constants(input: dict):
   if 'phi_i' in input:
     global phi_i
     phi_i = float(input['phi_i'])
+  if 'R_g' in input:
+    global R_g
+    R_g = float(input['R_g'])
   if 'C_V_fan_dsgn_H' in input:
     global C_V_fan_dsgn_H
     C_V_fan_dsgn_H = float(input['C_V_fan_dsgn_H'])
