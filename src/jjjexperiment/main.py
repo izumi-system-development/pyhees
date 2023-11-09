@@ -128,13 +128,7 @@ def calc(input_data : dict, test_mode=False):
     ##### 暖房消費電力の計算（kWh/h）
 
     def get_V_hs_dsgn_H(H_A: dict, q_rtd_H: float):
-        if H_A['type'] == constants.PROCESS_TYPE_1 or H_A['type'] == constants.PROCESS_TYPE_3:
-            V_fan_rtd_H = H_A['V_fan_rtd_H']
-        elif H_A['type']== constants.PROCESS_TYPE_2 or H_A['type'] == constants.PROCESS_TYPE_4:
-            V_fan_rtd_H = dc_spec.get_V_fan_rtd_H(q_rtd_H)
-        else:
-            raise Exception("暖房方式が不正です。")
-
+        V_fan_rtd_H = H_A['V_fan_rtd_H'] if 'V_fan_rtd_H' in H_A else dc_spec.get_V_fan_rtd_H(q_rtd_H)
         return dc_spec.get_V_fan_dsgn_H(V_fan_rtd_H)
 
     V_hs_dsgn_H = H_A['V_hs_dsgn_H'] if 'V_hs_dsgn_H' in H_A else get_V_hs_dsgn_H(H_A, q_rtd_H)
@@ -153,14 +147,6 @@ def calc(input_data : dict, test_mode=False):
     Theta_ex_d_t = get_Theta_ex(climate)
 
     _logger.NDdebug("Q_UT_H_d_t_i", Q_UT_H_d_t_i[0])
-
-    if H_A['type'] == constants.PROCESS_TYPE_4:
-        pass  # 省略
-
-    else:
-        P_rac_fan_rtd_H = V_hs_dsgn_H * H_A['f_SFP_H']
-    """定格暖房能力運転時の送風機の消費電力(W)"""
-    _logger.info(f"P_rac_fan_rtd_H [W]: {P_rac_fan_rtd_H}")
 
     E_E_H_d_t: np.ndarray
     """日付dの時刻tにおける1時間当たりの暖房時の消費電力量(kWh/h)"""
@@ -204,27 +190,13 @@ def calc(input_data : dict, test_mode=False):
     ##### 冷房消費電力の計算（kWh/h）
 
     def get_V_hs_dsgn_C(C_A: dict, q_rtd_C: float):
-        if C_A['type'] == constants.PROCESS_TYPE_1 or C_A['type'] == constants.PROCESS_TYPE_3:
-            V_fan_rtd_C = C_A['V_fan_rtd_C']
-        elif C_A['type'] == constants.PROCESS_TYPE_2 or C_A['type'] == constants.PROCESS_TYPE_4:
-            V_fan_rtd_C = dc_spec.get_V_fan_rtd_C(q_rtd_C)
-        else:
-            raise Exception("冷房方式が不正です。")
-
+        V_fan_rtd_C = C_A['V_fan_rtd_C'] if 'V_fan_rtd_C' in C_A else dc_spec.get_V_fan_rtd_C(q_rtd_C)
         return dc_spec.get_V_fan_dsgn_C(V_fan_rtd_C)
 
     V_hs_dsgn_C = C_A['V_hs_dsgn_C'] if 'V_hs_dsgn_C' in C_A else get_V_hs_dsgn_C(C_A, q_rtd_C)
     """ 冷房時の送風機の設計風量[m3/h] """
     V_hs_dsgn_H: float = None  # NOTE: 冷房負荷計算時は空
     """ 暖房時の送風機の設計風量[m3/h] """
-
-    if C_A['type'] == constants.PROCESS_TYPE_4:
-        pass  # 省略
-
-    else:
-        P_rac_fan_rtd_C: float = V_hs_dsgn_C * C_A['f_SFP_C']
-    """定格冷房能力運転時の送風機の消費電力(W)"""
-    _logger.info(f"P_rac_fan_rtd_C [W]: {P_rac_fan_rtd_C}")
 
     E_UT_C_d_t: np.ndarray
     """冷房設備の未処理冷房負荷の設計一次エネルギー消費量相当値(MJ/h)"""

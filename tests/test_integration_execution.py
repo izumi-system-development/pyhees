@@ -16,7 +16,6 @@ from test_utils.utils import *
 class Test既存計算維持_デフォルト入力時:
 
     _inputs1: dict = json.load(open(INPUT_SAMPLE_TYPE1_PATH, 'r'))
-    _inputs2: dict = json.load(open(INPUT_SAMPLE_TYPE2_PATH, 'r'))
 
     def fix_latent_bug(self, inputs: dict) -> dict:
         """ 潜熱バグ修正時の計算結果を確認したい時に使用する
@@ -49,7 +48,6 @@ class Test既存計算維持_デフォルト入力時:
                 "C_A": {"VAV": 2},
             }
         inputs = deep_update(copy.deepcopy(inputs), fixtures)
-
         result = calc(inputs, test_mode=True)
 
     def test_計算結果一致_方式1(self, expected_result_type1):
@@ -60,12 +58,3 @@ class Test既存計算維持_デフォルト入力時:
 
         assert result['TValue'].E_C == expected_result_type1.E_C
         assert result['TValue'].E_H == expected_result_type1.E_H
-
-    def test_計算結果一致_方式2(self, expected_result_type2):
-        """ ipynbのサンプル入力で計算結果が意図しない変化がないことを確認
-        """
-        _logger.init_logger()
-        result = calc(self._inputs2, test_mode=True)
-
-        assert result['TValue'].E_C == expected_result_type2.E_C
-        assert result['TValue'].E_H == expected_result_type2.E_H

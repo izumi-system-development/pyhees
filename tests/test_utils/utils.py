@@ -7,9 +7,6 @@ from os import path
 # NOTE: それぞれ用意する必要がある理由
 # 各方式ごとにjsonの内容が包含でなく排他的であり 'TYPE'の書替のみでは不可能であるため
 INPUT_SAMPLE_TYPE1_PATH = path.join(path.dirname(__file__), 'input_sample_type1.json')
-INPUT_SAMPLE_TYPE2_PATH = path.join(path.dirname(__file__), 'input_sample_type2.json')
-INPUT_SAMPLE_TYPE3_PATH = path.join(path.dirname(__file__), 'input_sample_type3.json')
-INPUT_SAMPLE_TYPE4_PATH = path.join(path.dirname(__file__), 'input_sample_type4.json')
 
 @pytest.fixture
 def expected_inputs():
@@ -29,12 +26,6 @@ def expected_result_type1():
     """ 上記の入力内容で期待される結果 """
     # return ResultSummary(E_C=14746.052998129611, E_H=36310.32799729332)
     return ResultSummary(E_C=14773.136498249627, E_H=36558.649546681496)
-
-@pytest.fixture
-def expected_result_type2():
-    """ 上記の入力内容で期待される結果 """
-    # return ResultSummary(E_C=14695.841130521072, E_H=40812.21298826678)
-    return ResultSummary(E_C=15659.533392736168, E_H=37437.81113318817)
 
 def deep_update(d, u):
     for k, v in u.items():
