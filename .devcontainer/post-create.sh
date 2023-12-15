@@ -1,7 +1,5 @@
 #!/usr/bin/env sh
 
-git config --global core.autocrlf false
-
 # pip の更新
 pip install --user -U pip
 
