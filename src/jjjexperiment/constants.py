@@ -57,17 +57,19 @@ a_r_H_t_t_a1: float = 0.2944
 """コンプレッサ効率特性_a1"""
 a_r_H_t_t_a0: float = 0
 """コンプレッサ効率特性_a0"""
-airvolume_minimum: float = 0.17
+airvolume_minimum_H: float = 14.38995 / 60
 """風量特性_中間期及び最小風量 [m3/s]"""
+airvolume_maximum_H: float = 24.3824 / 60
+"""風量特性_最大風量 [m3/s]"""
 airvolume_coeff_a4_H: float = 0
 """風量特性_a4"""
 airvolume_coeff_a3_H: float = 0
 """風量特性_a3"""
 airvolume_coeff_a2_H: float = 0
 """風量特性_a2"""
-airvolume_coeff_a1_H: float = 0.092
+airvolume_coeff_a1_H: float = 1.2946 / 60
 """風量特性_a1"""
-airvolume_coeff_a0_H: float = -0.06
+airvolume_coeff_a0_H: float = 12.084 / 60
 """風量特性_a0"""
 P_fan_H_d_t_a4: float = 0
 """ファン消費電力_a4"""
@@ -108,15 +110,19 @@ a_r_C_t_t_a1: float = 0.2944
 """コンプレッサ効率特性_a1"""
 a_r_C_t_t_a0: float = 0
 """コンプレッサ効率特性_a0"""
+airvolume_minimum_C: float = 14.38995 / 60
+"""風量特性_中間期及び最小風量 [m3/s]"""
+airvolume_maximum_C: float = 24.3824 / 60
+"""風量特性_最大風量 [m3/s]"""
 airvolume_coeff_a4_C: float = 0
 """風量特性_a4"""
 airvolume_coeff_a3_C: float = 0
 """風量特性_a3"""
 airvolume_coeff_a2_C: float = 0
 """風量特性_a2"""
-airvolume_coeff_a1_C: float = 0.092
+airvolume_coeff_a1_C: float = 2.4855 / 60
 """風量特性_a1"""
-airvolume_coeff_a0_C: float = -0.06
+airvolume_coeff_a0_C: float = 10.209 / 60
 """風量特性_a0"""
 P_fan_C_d_t_a4: float = 0
 """ファン消費電力_a4"""
@@ -209,6 +215,9 @@ def set_constants(input: dict):
     if 'airvolume_minimum' in input['H_A']:
       global airvolume_minimum_H
       airvolume_minimum_H = float(input['H_A']['airvolume_minimum'])
+    if 'airvolume_maximum' in input['H_A']:
+      global airvolume_maximum_H
+      airvolume_maximum_H = float(input['H_A']['airvolume_maximum'])
     if 'airvolume_coeff' in input['H_A']:
       global airvolume_coeff_a4_H 
       airvolume_coeff_a4_H = float(input['H_A']['airvolume_coeff'][0])
@@ -269,6 +278,9 @@ def set_constants(input: dict):
     if 'airvolume_minimum' in input['C_A']:
       global airvolume_minimum_C
       airvolume_minimum_C = float(input['C_A']['airvolume_minimum'])
+    if 'airvolume_maximum' in input['C_A']:
+      global airvolume_maximum_C
+      airvolume_maximum_C = float(input['C_A']['airvolume_maximum'])
     if 'airvolume_coeff' in input['C_A']:
       global airvolume_coeff_a4_C
       airvolume_coeff_a4_C = float(input['C_A']['airvolume_coeff'][0])
