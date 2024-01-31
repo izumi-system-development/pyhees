@@ -32,7 +32,6 @@ import jjjexperiment.denchu_2
 def calc(input_data : dict, test_mode=False):
     case_name   = input_data['case_name']
     climateFile = input_data['climateFile']
-    outdoorFile = input_data['outdoorFile']
     loadFile    = input_data['loadFile']
 
     with open(case_name + version_info() + '_input.json', 'w') as f:
@@ -143,12 +142,12 @@ def calc(input_data : dict, test_mode=False):
     """暖房設備機器等の未処理暖房負荷(MJ/h)"""
 
     _, Q_UT_H_d_t_i, _, _, Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t, _, _, V_hs_supply_d_t, V_hs_vent_d_t, C_df_H_d_t, =\
-        jjjexperiment.calc.calc_Q_UT_A(case_name, A_A, A_MR, A_OR, ENV['A_env'], mu_H, mu_C,
+        jjjexperiment.calc.calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C,
             H_A['q_hs_rtd_H'], None,
             q_rtd_H, q_rtd_C, q_max_H, q_max_C, V_hs_dsgn_H, V_hs_dsgn_C, Q, H_A['VAV'], H_A['general_ventilation'], hs_CAV,
             H_A['duct_insulation'], region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i,
             H_A['type'], input_C_af_H, input_C_af_C,
-            underfloor_insulation, underfloor_air_conditioning_air_supply, YUCACO_r_A_ufvnt, R_g, climateFile, outdoorFile)
+            underfloor_insulation, underfloor_air_conditioning_air_supply, YUCACO_r_A_ufvnt, R_g, climateFile)
 
     _logger.NDdebug("Q_UT_H_d_t_i", Q_UT_H_d_t_i[0])
 
@@ -203,7 +202,7 @@ def calc(input_data : dict, test_mode=False):
         EquipmentSpec = H_A['EquipmentSpec'],
         input_C_af_H = input_C_af_H,
         f_SFP_H = H_A['f_SFP_H'],
-        outdoorFile = outdoorFile,
+        climateFile = climateFile,
         simu_R_H= simu_R_H if H_A['type']==PROCESS_TYPE_4 else None,
         spec=     spec     if H_A['type']==PROCESS_TYPE_4 else None,
         Theta_real_inner=  T_real if H_A['type']==PROCESS_TYPE_4 else None,
@@ -263,12 +262,12 @@ def calc(input_data : dict, test_mode=False):
     """冷房設備の未処理冷房負荷の設計一次エネルギー消費量相当値(MJ/h)"""
 
     E_C_UT_d_t, _, _, _, Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t, X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, V_hs_vent_d_t, _\
-        = jjjexperiment.calc.calc_Q_UT_A(case_name, A_A, A_MR, A_OR, ENV['A_env'], mu_H, mu_C,
+        = jjjexperiment.calc.calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C,
             None, C_A['q_hs_rtd_C'],
             q_rtd_H, q_rtd_C, q_max_H, q_max_C, V_hs_dsgn_H, V_hs_dsgn_C, Q, C_A['VAV'], C_A['general_ventilation'], hs_CAV,
             C_A['duct_insulation'], region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i,
             C_A['type'], input_C_af_H, input_C_af_C,
-            underfloor_insulation, underfloor_air_conditioning_air_supply, YUCACO_r_A_ufvnt, R_g, climateFile, outdoorFile)
+            underfloor_insulation, underfloor_air_conditioning_air_supply, YUCACO_r_A_ufvnt, R_g, climateFile)
 
     E_E_C_d_t: np.ndarray
     """日付dの時刻tにおける1時間当たりの冷房時の消費電力量(kWh/h)"""
@@ -302,7 +301,7 @@ def calc(input_data : dict, test_mode=False):
         dualcompressor_C = dualcompressor_C,
         input_C_af_C = input_C_af_C,
         f_SFP_C = C_A['f_SFP_C'],
-        outdoorFile = outdoorFile,
+        climateFile = climateFile,
         simu_R_C= simu_R_C if C_A['type']==PROCESS_TYPE_4 else None,
         spec= spec         if C_A['type']==PROCESS_TYPE_4 else None,
         Theta_real_inner=  T_real if H_A['type']==PROCESS_TYPE_4 else None,

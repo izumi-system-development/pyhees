@@ -37,7 +37,6 @@ from pyhees.section4_8_a import \
   # TODO: 不要なら消す
 from pyhees.section11_1 import \
     load_climate, \
-    load_outdoor, \
     get_Theta_ex, \
     get_X_ex, \
     calc_h_ex

@@ -22,7 +22,6 @@ from pyhees.section4_7_i import \
     get_A_A_R
 
 from pyhees.section11_1 import \
-    load_outdoor, \
     get_Theta_ex, \
     get_X_ex, \
     load_climate, \
@@ -1302,12 +1301,12 @@ def get_V_hs_vent_d_t(V_vent_g_i, general_ventilation):
 # ============================================================================
 # 9.7 VAV調整前の熱源機の風量
 # ============================================================================
-def get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t, region):
+def get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t, region, for_cooling):
     """ルームエアコンディショナ活用型全館空調（潜熱評価モデル）_風量特性 \n
     Args:
       Q_hat_hs_d_t: 日付dの時刻tにおける１時間当たりの熱源機の風量を計算するための熱源機の出力（MJ/h） \n
       region: 地域区分 \n
-
+      cooling: 冷房であるか \n
     Returns:
       日付dの時刻tにおけるVAV調整前の熱源機の風量（m3/h） \n
 
@@ -1321,40 +1320,45 @@ def get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t, region):
     V_dash_hs_supply_d_t = np.zeros(24 * 365)
 
     # 暖房期
-    f1 = np.logical_and(H, Q_hat_hs_d_t_kw < 2.5)   # 顕熱2.5kW未満
-    f2 = np.logical_and(H, Q_hat_hs_d_t_kw >= 2.5)  # 顕熱2.5kW以上
-    assert np.count_nonzero(H) == sum(map(np.count_nonzero, [f1, f2]))
 
-    V_dash_hs_supply_d_t[f1] = constants.airvolume_minimum
-    V_dash_hs_supply_d_t[f2] =  \
-        (constants.airvolume_coeff_a4_H * Q_hat_hs_d_t_kw ** 4
+    if for_cooling == True:
+      V_dash_hs_supply_d_t[H] = constants.airvolume_minimum_C
+    else:
+      V_dash_hs_supply_d_t[H] = \
+        np.clip(
+          (constants.airvolume_coeff_a4_H * Q_hat_hs_d_t_kw ** 4
             + constants.airvolume_coeff_a3_H * Q_hat_hs_d_t_kw ** 3
             + constants.airvolume_coeff_a2_H * Q_hat_hs_d_t_kw ** 2
             + constants.airvolume_coeff_a1_H * Q_hat_hs_d_t_kw
-            + constants.airvolume_coeff_a0_H)[f2]
+            + constants.airvolume_coeff_a0_H)[H],
+          constants.airvolume_minimum_H, constants.airvolume_maximum_H
+        )
 
     # 冷房期
-    f3 = np.logical_and(C, Q_hat_hs_d_t_kw < 2.5)   # 顕熱2.5kW未満
-    f4 = np.logical_and(C, Q_hat_hs_d_t_kw >= 2.5)  # 顕熱2.5kW以上
-    assert np.count_nonzero(C) == sum(map(np.count_nonzero, [f3, f4]))
-
-    V_dash_hs_supply_d_t[f3] = constants.airvolume_minimum
-
-    V_dash_hs_supply_d_t[f4] =  \
-        (constants.airvolume_coeff_a4_C * Q_hat_hs_d_t_kw ** 4
+    if for_cooling == True:
+      V_dash_hs_supply_d_t[C] =  \
+        np.clip(
+          (constants.airvolume_coeff_a4_C * Q_hat_hs_d_t_kw ** 4
             + constants.airvolume_coeff_a3_C * Q_hat_hs_d_t_kw ** 3
             + constants.airvolume_coeff_a2_C * Q_hat_hs_d_t_kw ** 2
             + constants.airvolume_coeff_a1_C * Q_hat_hs_d_t_kw
-            + constants.airvolume_coeff_a0_C)[f4]
+            + constants.airvolume_coeff_a0_C)[C],
+          constants.airvolume_minimum_C, constants.airvolume_maximum_C
+        )
+    else:
+      V_dash_hs_supply_d_t[C] = constants.airvolume_minimum_H
 
     # 中間期
-    V_dash_hs_supply_d_t[M] = constants.airvolume_minimum
+    if for_cooling == True:
+      V_dash_hs_supply_d_t[M] = constants.airvolume_minimum_C
+    else:
+      V_dash_hs_supply_d_t[M] = constants.airvolume_minimum_H
 
     # WARNING: 少数点の扱いの問題で意図しない結果になる
     # assert min(V_dash_hs_supply_d_t) == constants.airvolume_minimum
 
-    # NOTE: ここまで m3/s ベース 変換-> m3/h
-    return V_dash_hs_supply_d_t * 3600
+    # NOTE: ここまで m3/min ベース 変換-> m3/h
+    return V_dash_hs_supply_d_t * 60
 
 def get_V_dash_hs_supply_d_t(V_hs_min, V_hs_dsgn_H, V_hs_dsgn_C, Q_hs_rtd_H, Q_hs_rtd_C, Q_hat_hs_d_t, region):
     """(36-1)(36-2)(36-3)
@@ -3010,7 +3014,6 @@ def get_Theta():
 # デバッグ用コード
 # ============================================================================
 if __name__ == '__main__':
-    from pyhees.section11_1 import load_outdoor
     from pyhees.section2_2 import get_E_H_d_t, get_E_C_d_t
     from pyhees.section3_1 import get_Q
     from pyhees.section3_2 import calc_r_env, get_Q_dash, get_mu_H, get_mu_C
