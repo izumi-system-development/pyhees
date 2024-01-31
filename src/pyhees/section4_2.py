@@ -1301,7 +1301,7 @@ def get_V_hs_vent_d_t(V_vent_g_i, general_ventilation):
 # ============================================================================
 # 9.7 VAV調整前の熱源機の風量
 # ============================================================================
-def get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t, region, cooling):
+def get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t, region, for_cooling):
     """ルームエアコンディショナ活用型全館空調（潜熱評価モデル）_風量特性 \n
     Args:
       Q_hat_hs_d_t: 日付dの時刻tにおける１時間当たりの熱源機の風量を計算するための熱源機の出力（MJ/h） \n
@@ -1321,7 +1321,7 @@ def get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t, region, cooling):
 
     # 暖房期
 
-    if cooling == True:
+    if for_cooling == True:
       V_dash_hs_supply_d_t[H] = constants.airvolume_minimum_C
     else:
       V_dash_hs_supply_d_t[H] = \
@@ -1335,7 +1335,7 @@ def get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t, region, cooling):
         )
 
     # 冷房期
-    if cooling == True:
+    if for_cooling == True:
       V_dash_hs_supply_d_t[C] =  \
         np.clip(
           (constants.airvolume_coeff_a4_C * Q_hat_hs_d_t_kw ** 4
@@ -1349,7 +1349,7 @@ def get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t, region, cooling):
       V_dash_hs_supply_d_t[C] = constants.airvolume_minimum_H
 
     # 中間期
-    if cooling == True:
+    if for_cooling == True:
       V_dash_hs_supply_d_t[M] = constants.airvolume_minimum_C
     else:
       V_dash_hs_supply_d_t[M] = constants.airvolume_minimum_H
