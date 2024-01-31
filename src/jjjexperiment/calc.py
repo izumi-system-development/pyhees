@@ -14,7 +14,6 @@ from jjjexperiment.constants import PROCESS_TYPE_1, PROCESS_TYPE_2, PROCESS_TYPE
 import pyhees.section4_3 as rac
 
 # 床下
-# import pyhees.section3_1_e2 as uf
 import pyhees.section3_1_e as uf
 import pyhees.section3_1 as ld
 
