@@ -61,7 +61,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
 
     #主たる居室・その他居室・非居室の面積
     A_HCZ_i = np.array([ld.get_A_HCZ_i(i, A_A, A_MR, A_OR) for i in range(1, 6)])
-    A_HCZ_R_i = [ld.get_A_HCZ_R_i(i) for i in range(1, 6)]
+    A_HCZ_R_i = np.array([ld.get_A_HCZ_R_i(i) for i in range(1, 6)])
     A_NR = ld.get_A_NR(A_A, A_MR, A_OR)
 
     df_output2['A_HCZ_i'] = A_HCZ_i
@@ -330,8 +330,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         L_star_CL_d_t_i_5 = L_star_CL_d_t_i[4]
     )
 
-    if constants.carry_over_heat == 2:
-
+    if constants.carry_over_heat == 過剰熱量繰越計算.行う.value:
         # インデックス順に更新対象
         L_star_CS_d_t_i = np.zeros((5, 24 * 365))
         L_star_H_d_t_i = np.zeros((5, 24 * 365))
@@ -339,13 +338,10 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         Theta_NR_d_t_i = np.zeros(24 * 365)
 
         for hour in range(0, 24 * 365):
-            # TODO: ここの中はまだ元のコードのコピペ。時刻別に分解する必要がある。
-
             # (9)　熱取得を含む負荷バランス時の冷房顕熱負荷
-            L_star_CS_d_t_i[:, hour:hour+1] = dc.get_L_star_CS_i_2023(L_CS_d_t_i, Q_star_trs_prt_d_t_i, region, Theta_star_HBR_d_t, Theta_HBR_d_t_i, hour)
+            L_star_CS_d_t_i[:, hour:hour+1] = dc.get_L_star_CS_i_2023(L_CS_d_t_i, Q_star_trs_prt_d_t_i, region, A_HCZ_i, A_HCZ_R_i, Theta_star_HBR_d_t, Theta_HBR_d_t_i, hour)
             # (8)　熱損失を含む負荷バランス時の暖房負荷
-            L_star_H_d_t_i[:, hour:hour+1] = dc.get_L_star_H_i_2023(L_H_d_t_i, Q_star_trs_prt_d_t_i, region, Theta_star_HBR_d_t, Theta_HBR_d_t_i, hour)
-
+            L_star_H_d_t_i[:, hour:hour+1] = dc.get_L_star_H_i_2023(L_H_d_t_i, Q_star_trs_prt_d_t_i, region, A_HCZ_i, A_HCZ_R_i, Theta_star_HBR_d_t, Theta_HBR_d_t_i, hour)
 
             ####################################################################################################################
             if type == PROCESS_TYPE_1 or type == PROCESS_TYPE_3:
@@ -520,7 +516,8 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
 
             # (46)　暖冷房区画𝑖の実際の居室の室温
             Theta_HBR_d_t_i[:, hour:hour+1] = dc.get_Theta_HBR_i_2023(Theta_star_HBR_d_t, V_supply_d_t_i, Theta_supply_d_t_i, U_prt, A_prt_i, Q,
-                                                          A_HCZ_i, L_star_H_d_t_i, L_star_CS_d_t_i, region, Theta_HBR_d_t_i, hour)
+                                                        A_HCZ_i, L_star_H_d_t_i, L_star_CS_d_t_i, region,
+                                                        A_HCZ_R_i, Theta_HBR_d_t_i, hour)
 
             # (48)　実際の非居室の室温
             Theta_NR_d_t_i[hour:hour+1] = dc.get_Theta_NR_2023(Theta_star_NR_d_t, Theta_star_HBR_d_t, Theta_HBR_d_t_i, A_NR, V_vent_l_NR_d_t,

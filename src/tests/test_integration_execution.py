@@ -4,13 +4,8 @@ import copy
 
 from jjjexperiment.main import calc
 from jjjexperiment.logger import LimitedLoggerAdapter as _logger
+from jjjexperiment.options import *
 
-#from os.path import join, dirname
-from os import pardir, path
-import sys
-
-sys.path.append(path.dirname(__file__))
-print(sys.path)
 from test_utils.utils import *
 
 class Test既存計算維持_デフォルト入力時:
@@ -52,7 +47,10 @@ class Test既存計算維持_デフォルト入力時:
         """ ipynbのサンプル入力で計算結果が意図しない変化がないことを確認
         """
         _logger.init_logger()
-        result = calc(self._inputs1, test_mode=True)
+
+        inputs = copy.deepcopy(self._inputs1)
+        inputs["carry_over_heat"] = 過剰熱量繰越計算.行う.value
+        result = calc(inputs, test_mode=True)
 
         assert result['TValue'].E_C == expected_result_type1.E_C
         assert result['TValue'].E_H == expected_result_type1.E_H
