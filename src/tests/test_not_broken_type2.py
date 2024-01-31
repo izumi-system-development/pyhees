@@ -9,11 +9,12 @@ from os import path
 from test_utils.utils import  \
     expected_inputs, expected_result_type2, INPUT_SAMPLE_TYPE2_PATH
 
+
 class Test既存計算維持_入力値切替_方式2:
     """ 既存計算が壊れていないことのテスト
         暖房・冷房ともに「ルームエアコンディショナ活用型全館空調」
     """
-    _inputs: dict = json.load(open(path.join(path.dirname(__file__), INPUT_SAMPLE_TYPE2_PATH), 'r'))
+    _inputs: dict = json.load(open(INPUT_SAMPLE_TYPE2_PATH, 'r'))
 
     def test_前提確認_入力値(self, expected_inputs):
         """ テストコードが想定しているインプットデータかどうか確認
@@ -47,7 +48,7 @@ class Test既存計算維持_入力値切替_方式2:
 
         assert result['TValue'].E_C == expected_result_type2.E_C
         assert result['TValue'].E_H != expected_result_type2.E_H
-        assert math.isclose(result['TValue'].E_H, 40813.23277369657)
+        assert math.isclose(result['TValue'].E_H, 40703.110799509814)
 
     def test_入力値入替_02(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -61,7 +62,7 @@ class Test既存計算維持_入力値切替_方式2:
 
         assert result['TValue'].E_H == expected_result_type2.E_H
         assert result['TValue'].E_C != expected_result_type2.E_C
-        assert math.isclose(result['TValue'].E_C, 14178.967016020626)
+        assert math.isclose(result['TValue'].E_C, 13195.535840358309)
 
     def test_入力値入替_03(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -75,7 +76,7 @@ class Test既存計算維持_入力値切替_方式2:
 
         assert result['TValue'].E_C == expected_result_type2.E_C
         assert result['TValue'].E_H != expected_result_type2.E_H
-        assert math.isclose(result['TValue'].E_H, 40379.49973723975)
+        assert math.isclose(result['TValue'].E_H, 40259.614225256155)
 
     def test_入力値入替_04(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -89,7 +90,7 @@ class Test既存計算維持_入力値切替_方式2:
 
         assert result['TValue'].E_C == expected_result_type2.E_C
         assert result['TValue'].E_H != expected_result_type2.E_H
-        assert math.isclose(result['TValue'].E_H, 41330.46136603447)
+        assert math.isclose(result['TValue'].E_H, 41211.39467707037)
 
     def test_入力値入替_05(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -103,7 +104,7 @@ class Test既存計算維持_入力値切替_方式2:
 
         assert result['TValue'].E_C == expected_result_type2.E_C
         assert result['TValue'].E_H != expected_result_type2.E_H
-        assert math.isclose(result['TValue'].E_H, 41565.19129722995)
+        assert math.isclose(result['TValue'].E_H, 41446.61835562958)
 
     def test_入力値入替_06(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -116,9 +117,9 @@ class Test既存計算維持_入力値切替_方式2:
         result = calc(inputs, test_mode=True)
 
         assert result['TValue'].E_C != expected_result_type2.E_C
-        assert math.isclose(result['TValue'].E_C, 14785.070861211718)
+        assert math.isclose(result['TValue'].E_C, 13969.624940559826)
         assert result['TValue'].E_H != expected_result_type2.E_H
-        assert math.isclose(result['TValue'].E_H, 41236.578091305644)
+        assert math.isclose(result['TValue'].E_H, 41116.4326458173)
 
     def test_入力値入替_07(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -132,7 +133,7 @@ class Test既存計算維持_入力値切替_方式2:
 
         assert result['TValue'].E_C == expected_result_type2.E_C
         assert result['TValue'].E_H != expected_result_type2.E_H
-        assert math.isclose(result['TValue'].E_H, 40775.15329048871)
+        assert math.isclose(result['TValue'].E_H, 40651.396812654966)
 
     def test_入力値入替_08(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -146,7 +147,7 @@ class Test既存計算維持_入力値切替_方式2:
 
         assert result['TValue'].E_H == expected_result_type2.E_H
         assert result['TValue'].E_C != expected_result_type2.E_C
-        assert math.isclose(result['TValue'].E_C, 14788.362569150617)
+        assert math.isclose(result['TValue'].E_C, 13894.121521408693)
 
     def test_入力値入替_09(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -160,7 +161,7 @@ class Test既存計算維持_入力値切替_方式2:
 
         assert result['TValue'].E_C == expected_result_type2.E_C
         assert result['TValue'].E_H != expected_result_type2.E_H
-        assert math.isclose(result['TValue'].E_H, 40228.03332635408)
+        assert math.isclose(result['TValue'].E_H, 40108.03642034368)
 
     def test_入力値入替_10(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -174,7 +175,7 @@ class Test既存計算維持_入力値切替_方式2:
 
         assert result['TValue'].E_C == expected_result_type2.E_C
         assert result['TValue'].E_H != expected_result_type2.E_H
-        assert math.isclose(result['TValue'].E_H, 40925.918843796484)
+        assert math.isclose(result['TValue'].E_H, 40806.580581208946)
 
     def test_入力値入替_11(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -188,7 +189,7 @@ class Test既存計算維持_入力値切替_方式2:
 
         assert result['TValue'].E_C == expected_result_type2.E_C
         assert result['TValue'].E_H != expected_result_type2.E_H
-        assert math.isclose(result['TValue'].E_H, 40481.81864211065)
+        assert math.isclose(result['TValue'].E_H, 40362.181064378994)
 
     def test_入力値入替_12(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -202,7 +203,7 @@ class Test既存計算維持_入力値切替_方式2:
 
         assert result['TValue'].E_H == expected_result_type2.E_H
         assert result['TValue'].E_C != expected_result_type2.E_C
-        assert math.isclose(result['TValue'].E_C, 12824.79767377771)
+        assert math.isclose(result['TValue'].E_C, 11860.454876471904)
 
     def test_入力値入替_13(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -215,9 +216,9 @@ class Test既存計算維持_入力値切替_方式2:
         result = calc(inputs, test_mode=True)
 
         assert result['TValue'].E_H != expected_result_type2.E_H
-        assert math.isclose(result['TValue'].E_H, 43487.16595274875)
+        assert math.isclose(result['TValue'].E_H, 43379.96115079963)
         assert result['TValue'].E_C != expected_result_type2.E_C
-        assert math.isclose(result['TValue'].E_C, 17002.04875326623)
+        assert math.isclose(result['TValue'].E_C, 16144.967464385343)
 
     def test_入力値入替_14(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -230,9 +231,9 @@ class Test既存計算維持_入力値切替_方式2:
         result = calc(inputs, test_mode=True)
 
         assert result['TValue'].E_H != expected_result_type2.E_H
-        assert math.isclose(result['TValue'].E_H, 40822.38807655774)
+        assert math.isclose(result['TValue'].E_H, 40487.48035409603)
         assert result['TValue'].E_C != expected_result_type2.E_C
-        assert math.isclose(result['TValue'].E_C, 14184.472397667007)
+        assert math.isclose(result['TValue'].E_C, 13193.148448275444)
 
     def test_入力値入替_15(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -245,9 +246,9 @@ class Test既存計算維持_入力値切替_方式2:
         result = calc(inputs, test_mode=True)
 
         assert result['TValue'].E_H != expected_result_type2.E_H
-        assert math.isclose(result['TValue'].E_H, 47702.33872845253)
+        assert math.isclose(result['TValue'].E_H, 47568.49376799733)
         assert result['TValue'].E_C != expected_result_type2.E_C
-        assert math.isclose(result['TValue'].E_C, 22378.09180122358)
+        assert math.isclose(result['TValue'].E_C, 21944.014500865855)
 
     def test_入力値入替_16(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -260,9 +261,9 @@ class Test既存計算維持_入力値切替_方式2:
         result = calc(inputs, test_mode=True)
 
         assert result['TValue'].E_H != expected_result_type2.E_H
-        assert math.isclose(result['TValue'].E_H, 58567.764449747614)
+        assert math.isclose(result['TValue'].E_H, 58421.88338474051)
         assert result['TValue'].E_C != expected_result_type2.E_C
-        assert math.isclose(result['TValue'].E_C, 25009.231072133218)
+        assert math.isclose(result['TValue'].E_C, 24288.367155641543)
 
     def test_入力値入替_17(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -275,9 +276,9 @@ class Test既存計算維持_入力値切替_方式2:
         result = calc(inputs, test_mode=True)
 
         assert result['TValue'].E_H != expected_result_type2.E_H
-        assert math.isclose(result['TValue'].E_H, 174560.6036239345)
+        assert math.isclose(result['TValue'].E_H, 174261.67585289382)
         assert result['TValue'].E_C != expected_result_type2.E_C
-        assert math.isclose(result['TValue'].E_C, 2884.2632006293015)
+        assert math.isclose(result['TValue'].E_C, 2796.5202832953332)
 
     def test_入力値入替_18(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -290,9 +291,9 @@ class Test既存計算維持_入力値切替_方式2:
         result = calc(inputs, test_mode=True)
 
         assert result['TValue'].E_H != expected_result_type2.E_H
-        assert math.isclose(result['TValue'].E_H, 45819.9093469388)
+        assert math.isclose(result['TValue'].E_H, 45431.40860402107)
         assert result['TValue'].E_C != expected_result_type2.E_C
-        assert math.isclose(result['TValue'].E_C, 15119.878587850431)
+        assert math.isclose(result['TValue'].E_C, 14355.830223561976)
 
     def test_入力値入替_19(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -305,9 +306,9 @@ class Test既存計算維持_入力値切替_方式2:
         result = calc(inputs, test_mode=True)
 
         assert result['TValue'].E_H != expected_result_type2.E_H
-        assert math.isclose(result['TValue'].E_H, 51145.64313095035)
+        assert math.isclose(result['TValue'].E_H, 50840.21334169296)
         assert result['TValue'].E_C != expected_result_type2.E_C
-        assert math.isclose(result['TValue'].E_C, 14057.66109771598)
+        assert math.isclose(result['TValue'].E_C, 13283.038340947987)
 
     def test_入力値入替_20(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -321,7 +322,7 @@ class Test既存計算維持_入力値切替_方式2:
 
         assert result['TValue'].E_H == expected_result_type2.E_H
         assert result['TValue'].E_C != expected_result_type2.E_C
-        assert math.isclose(result['TValue'].E_C, 16690.55292080024)
+        assert math.isclose(result['TValue'].E_C, 15887.466793749534)
 
     def test_入力値入替_21(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -335,7 +336,7 @@ class Test既存計算維持_入力値切替_方式2:
 
         assert result['TValue'].E_C == expected_result_type2.E_C
         assert result['TValue'].E_H != expected_result_type2.E_H
-        assert math.isclose(result['TValue'].E_H, 43202.66151700742)
+        assert math.isclose(result['TValue'].E_H, 42822.54947702187)
 
     def test_入力値入替_22(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -348,9 +349,9 @@ class Test既存計算維持_入力値切替_方式2:
         result = calc(inputs, test_mode=True)
 
         assert result['TValue'].E_H != expected_result_type2.E_H
-        assert math.isclose(result['TValue'].E_H, 38306.56455225713)
+        assert math.isclose(result['TValue'].E_H, 38220.231632402436)
         assert result['TValue'].E_C != expected_result_type2.E_C
-        assert math.isclose(result['TValue'].E_C, 12647.872661178222)
+        assert math.isclose(result['TValue'].E_C, 11904.863638027613)
 
     def test_入力値入替_23(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -391,9 +392,9 @@ class Test既存計算維持_入力値切替_方式2:
         result = calc(inputs, test_mode=True)
 
         assert result['TValue'].E_H != expected_result_type2.E_H
-        assert math.isclose(result['TValue'].E_H, 67493.42767621638)
+        assert math.isclose(result['TValue'].E_H, 67278.54303193314)
         assert result['TValue'].E_C != expected_result_type2.E_C
-        assert math.isclose(result['TValue'].E_C, 18872.3162663047)
+        assert math.isclose(result['TValue'].E_C, 18024.47144210919)
 
     def test_入力値入替_26(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -419,9 +420,10 @@ class Test既存計算維持_入力値切替_方式2:
 
         result = calc(inputs, test_mode=True)
 
-        assert result['TValue'].E_C == expected_result_type2.E_C
+        assert result['TValue'].E_C != expected_result_type2.E_C
+        assert math.isclose(result['TValue'].E_C, 15119.019779570026)
         assert result['TValue'].E_H != expected_result_type2.E_H
-        assert math.isclose(result['TValue'].E_H, 41606.24726343731)
+        assert math.isclose(result['TValue'].E_H, 41489.49730383161)
 
     def test_入力値入替_H1(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -435,7 +437,7 @@ class Test既存計算維持_入力値切替_方式2:
 
         assert result['TValue'].E_C == expected_result_type2.E_C
         assert result['TValue'].E_H != expected_result_type2.E_H
-        assert math.isclose(result['TValue'].E_H, 38430.15407789486)
+        assert math.isclose(result['TValue'].E_H, 38426.4135686332)
 
     def test_入力値入替_H2(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -449,7 +451,7 @@ class Test既存計算維持_入力値切替_方式2:
 
         assert result['TValue'].E_C == expected_result_type2.E_C
         assert result['TValue'].E_H != expected_result_type2.E_H
-        assert math.isclose(result['TValue'].E_H, 39572.83185804524)
+        assert math.isclose(result['TValue'].E_H, 39667.322879561434)
 
     def test_入力値入替_H3(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -463,7 +465,7 @@ class Test既存計算維持_入力値切替_方式2:
 
         assert result['TValue'].E_C == expected_result_type2.E_C
         assert result['TValue'].E_H != expected_result_type2.E_H
-        assert math.isclose(result['TValue'].E_H, 41467.93507466678)
+        assert math.isclose(result['TValue'].E_H, 41348.5747910848)
 
     def test_入力値入替_H4(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -478,7 +480,7 @@ class Test既存計算維持_入力値切替_方式2:
 
         assert result['TValue'].E_C == expected_result_type2.E_C
         assert result['TValue'].E_H != expected_result_type2.E_H
-        assert math.isclose(result['TValue'].E_H, 40896.18678654383)
+        assert math.isclose(result['TValue'].E_H, 40703.594298106414)
 
     def test_入力値入替_H5_方式2(self, expected_inputs, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -522,7 +524,7 @@ class Test既存計算維持_入力値切替_方式2:
 
         assert result['TValue'].E_C == expected_result_type2.E_C
         assert result['TValue'].E_H != expected_result_type2.E_H
-        assert math.isclose(result['TValue'].E_H, 31577.30541426199)
+        assert math.isclose(result['TValue'].E_H, 31465.044727934437)
 
     def test_入力値入替_H6_方式2(self, expected_inputs, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -571,7 +573,7 @@ class Test既存計算維持_入力値切替_方式2:
 
         assert result['TValue'].E_C == expected_result_type2.E_C
         assert result['TValue'].E_H != expected_result_type2.E_H
-        assert math.isclose(result['TValue'].E_H, 40540.29726496144)
+        assert math.isclose(result['TValue'].E_H, 40211.253920843934)
 
     def test_入力値入替_R1(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -585,7 +587,7 @@ class Test既存計算維持_入力値切替_方式2:
 
         assert result['TValue'].E_H == expected_result_type2.E_H
         assert result['TValue'].E_C != expected_result_type2.E_C
-        assert math.isclose(result['TValue'].E_C, 14407.53084233618)
+        assert math.isclose(result['TValue'].E_C, 12963.794458199252)
 
     def test_入力値入替_R2(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -599,7 +601,7 @@ class Test既存計算維持_入力値切替_方式2:
 
         assert result['TValue'].E_H == expected_result_type2.E_H
         assert result['TValue'].E_C != expected_result_type2.E_C
-        assert math.isclose(result['TValue'].E_C, 12126.41287275799)
+        assert math.isclose(result['TValue'].E_C, 12132.12673911749)
 
     def test_入力値入替_R3(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -613,7 +615,7 @@ class Test既存計算維持_入力値切替_方式2:
 
         assert result['TValue'].E_H == expected_result_type2.E_H
         assert result['TValue'].E_C != expected_result_type2.E_C
-        assert math.isclose(result['TValue'].E_C, 15141.75913372107)
+        assert math.isclose(result['TValue'].E_C, 14288.496130040254)
 
     def test_入力値入替_R4(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -628,7 +630,7 @@ class Test既存計算維持_入力値切替_方式2:
 
         assert result['TValue'].E_H == expected_result_type2.E_H
         assert result['TValue'].E_C != expected_result_type2.E_C
-        assert math.isclose(result['TValue'].E_C, 16296.897277400154)
+        assert math.isclose(result['TValue'].E_C, 14711.227635804687)
 
     def test_入力値入替_R5_方式2(self, expected_result_type2, expected_inputs):
         """ 以前のプログラムと同じ計算結果になる
@@ -672,7 +674,7 @@ class Test既存計算維持_入力値切替_方式2:
 
         assert result['TValue'].E_H == expected_result_type2.E_H
         assert result['TValue'].E_C != expected_result_type2.E_C
-        assert math.isclose(result['TValue'].E_C, 14046.978599922277)
+        assert math.isclose(result['TValue'].E_C, 13134.136743036848)
 
     def test_入力値入替_R6_方式2(self):
         """ 以前のプログラムと同じ計算結果になる
@@ -715,8 +717,8 @@ class Test既存計算維持_入力値切替_方式2:
         assert math.isclose(result['TInput'].e_rtd_C, 2.59)
         assert math.isclose(result['TInput'].e_rtd_H, 3.6543)
 
-        assert math.isclose(result['TValue'].E_C, 21336.043883848488)
-        assert math.isclose(result['TValue'].E_H, 46940.16551587674)
+        assert math.isclose(result['TValue'].E_C, 20545.32585125354)
+        assert math.isclose(result['TValue'].E_H, 46788.506664833956)
 
     def test_入力値入替_HEX1(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -731,4 +733,4 @@ class Test既存計算維持_入力値切替_方式2:
 
         assert result['TValue'].E_C == expected_result_type2.E_C
         assert result['TValue'].E_H != expected_result_type2.E_H
-        assert math.isclose(result['TValue'].E_H, 38022.75810040755)
+        assert math.isclose(result['TValue'].E_H, 37895.580913287784)

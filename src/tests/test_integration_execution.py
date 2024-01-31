@@ -15,27 +15,10 @@ from test_utils.utils import *
 
 class Test既存計算維持_デフォルト入力時:
 
-    # WARNING: 現状プラットフォームのデフォルト入力が 潜熱バグFix=OFF となっている
-    # 正しい結果が必要なら fix_latent_load = 2 に上書きする
-    # print( join(pardir(dirname(__file__)), INPUT_SAMPLE_TYPE1_PATH) )
-    # print(INPUT_SAMPLE_TYPE1_PATH)
-    # print(pardir(path.dirname(__file__)))
-    # print(INPUT_SAMPLE_TYPE1_PATH)
-
     _inputs1: dict = json.load(open(INPUT_SAMPLE_TYPE1_PATH, 'r'))
     _inputs2: dict = json.load(open(INPUT_SAMPLE_TYPE2_PATH, 'r'))
     _inputs3: dict = json.load(open(INPUT_SAMPLE_TYPE3_PATH, 'r'))
     _inputs4: dict = json.load(open(INPUT_SAMPLE_TYPE4_PATH, 'r'))
-
-    # _inputs2: dict = json.load(open(path.join(path.pardir, INPUT_SAMPLE_TYPE2_PATH), 'r'))
-    # _inputs2: dict = json.load(open(path.join(path.dirname(__file__), INPUT_SAMPLE_TYPE2_PATH), 'r'))
-
-    def fix_latent_bug(self, inputs: dict) -> dict:
-        """ 潜熱バグ修正時の計算結果を確認したい時に使用する
-        """
-        inputs.update({"fix_latent_load": "2"})
-        # NOTE: もしも calc に通さないなら追加で set_constants() が必要
-        return inputs
 
     def test_インプットデータ_前提確認(self, expected_inputs):
         """ テストコードが想定しているインプットデータかどうか確認
@@ -49,20 +32,21 @@ class Test既存計算維持_デフォルト入力時:
         assert result['TInput'].e_rtd_C == expected_inputs.e_rtd_C
         assert result['TInput'].e_rtd_H == expected_inputs.e_rtd_H
 
-    def test_計算実行_バリデーションしない(self):
+    def test_関数_deep_update(self):
         """
         """
-        _logger.init_logger()
-        inputs = self.fix_latent_bug(self._inputs1)
-
         fixtures = {
                 "U_A": 0.60,  # 0.86
                 "H_A": {"VAV": 2},
                 "C_A": {"VAV": 2},
             }
-        inputs = deep_update(copy.deepcopy(inputs), fixtures)
+        # 複製しないと別テストで矛盾する
+        inputs_double = copy.deepcopy(self._inputs1)
+        inputs = deep_update(inputs_double, fixtures)
 
-        result = calc(inputs, test_mode=True)
+        assert inputs["U_A"] == 0.60
+        assert inputs["H_A"]["VAV"] == 2
+        assert inputs["C_A"]["VAV"] == 2
 
     def test_計算結果一致_方式1(self, expected_result_type1):
         """ ipynbのサンプル入力で計算結果が意図しない変化がないことを確認

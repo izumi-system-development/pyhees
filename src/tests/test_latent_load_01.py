@@ -8,6 +8,8 @@ import jjjexperiment.input as input
 from jjjexperiment.constants import PROCESS_TYPE_1, PROCESS_TYPE_2, PROCESS_TYPE_3
 import jjjexperiment.constants as consts
 
+from pyhees.section3_2 import calc_r_env
+
 from jjjexperiment.calc \
     import calc_E_E_H_d_t, calc_E_E_C_d_t, calc_Q_UT_A
 from pyhees.section4_1 \
@@ -18,6 +20,7 @@ from pyhees.section4_2_a \
     import get_A_f_hex, get_A_e_hex, get_alpha_c_hex_C, get_alpha_c_hex_H, get_E_E_fan_H_d_t, get_E_E_fan_C_d_t, get_q_hs_C_d_t, get_q_hs_H_d_t
 
 from test_utils.utils import INPUT_SAMPLE_TYPE3_PATH
+from jjjexperiment.logger import LimitedLoggerAdapter as _logger
 
 
 class Testコイル特性:
@@ -235,6 +238,7 @@ def kw2mjph(x: float) -> float:
     """ kW -> MJ/h へ単位変換する """
     return x * 3600 / 1000
 
+# TODO: テストの更新
 class Test風量特性_熱源機_低出力:
 
     _inputs: dict
@@ -265,6 +269,7 @@ class Test風量特性_熱源機_低出力:
         nptest.assert_allclose(self._sut[indices_M], consts.airvolume_minimum * 60 * 60)  # m3/h
 
 
+# TODO: テストの更新
 class Test風量特性_熱源機_高出力:
 
     _inputs: dict
@@ -334,7 +339,6 @@ def prepare_args_for_calc_Q_UT_A() -> dict:
     fixtures = {
         "case_name": "-",
         "climateFile": "-",
-        "outdoorFile": "-",
         "loadFile": "-",
         "Q": 2.647962191872085,
         "mu_C": 0.07170453031312457,
@@ -384,12 +388,18 @@ def prepare_args_for_calc_Q_UT_A() -> dict:
         mode_OR = fixtures["mode_OR"],
         HEX =     fixtures["HEX"])
 
+    r_env = calc_r_env(
+        method='当該住戸の外皮の部位の面積等を用いて外皮性能を評価する方法',
+        A_env=ENV['A_env'],
+        A_A=A_A
+    )
+
     main_args = {
         'case_name': fixtures['case_name'],
         'A_A': A_A,
         'A_MR': A_MR,
         'A_OR': A_OR,
-        'A_env': ENV['A_env'],
+        'r_env': r_env,
         'mu_H': fixtures["mu_H"],
         'mu_C': fixtures["mu_C"],
         'q_rtd_H': q_rtd_H,
@@ -409,7 +419,6 @@ def prepare_args_for_calc_Q_UT_A() -> dict:
         'YUCACO_r_A_ufvnt': fixtures["YUCACO_r_A_ufvnt"],
         'R_g': fixtures["R_g"],
         'climateFile': fixtures["climateFile"],
-        'outdoorFile': fixtures["outdoorFile"],
     }
     H_args = {
         'VAV': H_A['VAV'],
@@ -649,7 +658,7 @@ class Testコンプレッサ効率特性_暖房:
             "input_C_af_H":  main_args['input_C_af_H'],
             "EquipmentSpec": others['EquipmentSpec_H'],
             "f_SFP_H":       others['f_SFP_H'],
-            "outdoorFile":   main_args["outdoorFile"],
+            "climateFile": main_args['climateFile'],
         }
 
     _testBaseArgs: dict
@@ -686,7 +695,7 @@ class Testコンプレッサ効率特性_暖房:
         self._testBaseArgs["type"] = PROCESS_TYPE_2
         E_E_H_d_t2, _, E_E_fan_H_d_t2 = calc_E_E_H_d_t(**self._testBaseArgs)
 
-        assert not np.array_equal(E_E_fan_H_d_t1, E_E_fan_H_d_t2), "誤って送風機分の消費電力にも方式による差が生じています"
+        assert np.array_equal(E_E_fan_H_d_t1, E_E_fan_H_d_t2), "誤って送風機分の消費電力にも方式による差が生じています"
         assert not np.array_equal(E_E_H_d_t1, E_E_H_d_t2), "方式によって消費電力の計算値には差が生じなければなりません"
 
     def test_時間別消費電力量_方式3_係数設定有効(self):
@@ -757,7 +766,7 @@ class Testコンプレッサ効率特性_冷房:
             "input_C_af_C":  main_args['input_C_af_C'],
             "EquipmentSpec": others['EquipmentSpec_C'],
             "f_SFP_C": others['f_SFP_C'],
-            "outdoorFile": main_args['outdoorFile'],
+            "climateFile": main_args['climateFile'],
         }
 
     _testBaseArgs: dict
@@ -804,7 +813,7 @@ class Testコンプレッサ効率特性_冷房:
         self._testBaseArgs["type"] = PROCESS_TYPE_2
         E_E_C_d_t_T2, E_E_fan_C_d_t_T2, _, _ = calc_E_E_C_d_t(**self._testBaseArgs)
 
-        assert not np.array_equal(E_E_fan_C_d_t_T1, E_E_fan_C_d_t_T2), "誤って送風機分の消費電力にも方式による差が生じています"
+        assert np.array_equal(E_E_fan_C_d_t_T1, E_E_fan_C_d_t_T2), "誤って送風機分の消費電力にも方式による差が生じています"
         assert not np.array_equal(E_E_C_d_t_T1, E_E_C_d_t_T2), "方式によって消費電力の計算値には差が生じなければなりません"
 
     def test_時間別消費電力量_方式3_係数設定有効(self):

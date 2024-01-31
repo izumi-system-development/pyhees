@@ -54,7 +54,7 @@ def calc_Q_UT_A(A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs
 
     Args:
       A_A: param A_MR:
-      A_OR: param A_env:
+      A_OR: param r_env:
       mu_H: param mu_C:
       q_hs_rtd_H: param q_hs_rtd_C:
       V_hs_dsgn_H: param V_hs_dsgn_C:
