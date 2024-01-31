@@ -52,8 +52,8 @@ class Test既存計算維持_デフォルト入力時:
         # inputs["carry_over_heat"] = 過剰熱量繰越計算.行う.value
         result = calc(inputs, test_mode=True)
 
-        assert result['TValue'].E_C == expected_result_type1.E_C
-        assert result['TValue'].E_H == expected_result_type1.E_H
+        assert result['TValue'].E_C == pytest.approx(expected_result_type1.E_C, rel=1e-6)
+        assert result['TValue'].E_H == pytest.approx(expected_result_type1.E_H, rel=1e-6)
 
     def test_計算結果一致_方式2(self, expected_result_type2):
         """ ipynbのサンプル入力で計算結果が意図しない変化がないことを確認

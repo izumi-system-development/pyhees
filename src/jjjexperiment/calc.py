@@ -335,13 +335,17 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         L_star_CS_d_t_i = np.zeros((5, 24 * 365))
         L_star_H_d_t_i = np.zeros((5, 24 * 365))
         Theta_HBR_d_t_i = np.zeros((5, 24 * 365))
-        Theta_NR_d_t_i = np.zeros(24 * 365)
+        Theta_NR_d_t = np.zeros(24 * 365)
 
         for hour in range(0, 24 * 365):
             # (9)　熱取得を含む負荷バランス時の冷房顕熱負荷
-            L_star_CS_d_t_i[:, hour:hour+1] = dc.get_L_star_CS_i_2023(L_CS_d_t_i, Q_star_trs_prt_d_t_i, region, A_HCZ_i, A_HCZ_R_i, Theta_star_HBR_d_t, Theta_HBR_d_t_i, hour)
+            L_star_CS_d_t_i[:, hour:hour+1] = dc.get_L_star_CS_i_2023(
+                L_CS_d_t_i, Q_star_trs_prt_d_t_i, region, A_HCZ_i, A_HCZ_R_i,
+                Theta_star_HBR_d_t, Theta_HBR_d_t_i, hour)
             # (8)　熱損失を含む負荷バランス時の暖房負荷
-            L_star_H_d_t_i[:, hour:hour+1] = dc.get_L_star_H_i_2023(L_H_d_t_i, Q_star_trs_prt_d_t_i, region, A_HCZ_i, A_HCZ_R_i, Theta_star_HBR_d_t, Theta_HBR_d_t_i, hour)
+            L_star_H_d_t_i[:, hour:hour+1] = dc.get_L_star_H_i_2023(
+                L_H_d_t_i, Q_star_trs_prt_d_t_i, region, A_HCZ_i, A_HCZ_R_i,
+                Theta_star_HBR_d_t, Theta_HBR_d_t_i, hour)
 
             ####################################################################################################################
             if type == PROCESS_TYPE_1 or type == PROCESS_TYPE_3:
@@ -464,11 +468,12 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
                                                   Theta_req_d_t_i[1] + (Theta_req_d_t_i[1] - Theta_uf_d_t),
                                                   Theta_req_d_t_i[1])
 
+            # 式(14)(46)(48)の条件に合わせてTheta_NR_d_tを初期化
+            # NOTE: 繰り返し計算時には初期化してはならない
+            # Theta_NR_d_t = np.zeros(24 * 365)
+
             # (15)　熱源機の出口における絶対湿度
             X_hs_out_d_t = dc.get_X_hs_out_d_t(X_NR_d_t, X_req_d_t_i, V_dash_supply_d_t_i, X_hs_out_min_C_d_t, L_star_CL_d_t_i, region)
-
-            # 式(14)(46)(48)の条件に合わせてTheta_NR_d_tを初期化
-            Theta_NR_d_t = np.zeros(24 * 365)
 
             # (17)　冷房時の熱源機の出口における空気温度の最低値
             Theta_hs_out_min_C_d_t = dc.get_Theta_hs_out_min_C_d_t(Theta_star_hs_in_d_t, Q_hs_max_CS_d_t, V_dash_supply_d_t_i)
@@ -520,8 +525,8 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
                                                         A_HCZ_R_i, Theta_HBR_d_t_i, hour)
 
             # (48)　実際の非居室の室温
-            Theta_NR_d_t_i[hour:hour+1] = dc.get_Theta_NR_2023(Theta_star_NR_d_t, Theta_star_HBR_d_t, Theta_HBR_d_t_i, A_NR, V_vent_l_NR_d_t,
-                                                V_dash_supply_d_t_i, V_supply_d_t_i, U_prt, A_prt_i, Q, Theta_NR_d_t_i, hour)
+            Theta_NR_d_t[hour] = dc.get_Theta_NR_2023(Theta_star_NR_d_t, Theta_star_HBR_d_t, Theta_HBR_d_t_i, A_NR, V_vent_l_NR_d_t,
+                                                V_dash_supply_d_t_i, V_supply_d_t_i, U_prt, A_prt_i, Q, Theta_NR_d_t, hour)
 
     else:
         # (9)　熱取得を含む負荷バランス時の冷房顕熱負荷
@@ -709,6 +714,13 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
                                             V_dash_supply_d_t_i, V_supply_d_t_i, U_prt, A_prt_i, Q)
 
     # ループ計算部分の出力
+    df_output = df_output.assign(
+        L_star_CS_d_t_i_1 = L_star_CS_d_t_i[0],
+        L_star_CS_d_t_i_2 = L_star_CS_d_t_i[1],
+        L_star_CS_d_t_i_3 = L_star_CS_d_t_i[2],
+        L_star_CS_d_t_i_4 = L_star_CS_d_t_i[3],
+        L_star_CS_d_t_i_5 = L_star_CS_d_t_i[4]
+    )
     df_output = df_output.assign(
         L_star_H_d_t_i_1 = L_star_H_d_t_i[0],
         L_star_H_d_t_i_2 = L_star_H_d_t_i[1],
