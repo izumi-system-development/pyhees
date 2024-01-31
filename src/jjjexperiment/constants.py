@@ -30,8 +30,6 @@ C_hm_C: float = 1.15
 """室内機吸い込み湿度に関する冷房出力補正係数"""
 q_rtd_C_limit: float = 5600
 """定格冷房能力の最大値"""
-fix_latent_load: int = 1
-"""潜熱負荷計算の不具合修正"""
 change_supply_volume_before_vav_adjust: int = 1
 """VAV調整前の吹き出し風量の式を変更"""
 change_heat_source_outlet_required_temperature: int = 1
@@ -174,9 +172,6 @@ def set_constants(input: dict):
   if 'q_rtd_C_limit' in input:
     global q_rtd_C_limit
     q_rtd_C_limit = float(input['q_rtd_C_limit'])
-  if 'fix_latent_load' in input:
-    global fix_latent_load
-    fix_latent_load = int(input['fix_latent_load'])
   if 'change_supply_volume_before_vav_adjust' in input:
     global change_supply_volume_before_vav_adjust
     change_supply_volume_before_vav_adjust = int(input['change_supply_volume_before_vav_adjust'])
