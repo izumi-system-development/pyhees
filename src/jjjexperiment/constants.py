@@ -36,6 +36,8 @@ change_heat_source_outlet_required_temperature: int = 1
 """熱源機の出口における空気温度"""
 change_V_supply_d_t_i_max: int = 1
 """V_supply_d_t_iの上限キャップを外す"""
+carry_over_heat: int = 1
+"""過剰熱量を次の時刻に持ち越す"""
 
 #以下、潜熱評価モデル追加対応(暖房)
 A_f_hex_small_H: float = 0.2
@@ -135,6 +137,13 @@ P_fan_C_d_t_a1: float = 20.217
 P_fan_C_d_t_a0: float = 50
 """ファン消費電力_a0"""
 
+# 過剰熱量の持ち越し計算
+Alpha_HCZ_i = [12.6, 12.6, 12.6, 12.6, 12.6]
+"""区画i毎の壁床天井材の熱容量 [kJ・K]"""
+Alpha_NR_i = 12.6
+"""区画i毎の壁床天井材の熱容量 [kJ・K]"""
+A_NR_R = 38.93
+"""非居室の床面積[m2]"""  # NOTE: A_NR とは異なるものです
 
 def set_constants(input: dict):
   """ 更新したい部分のみの辞書でも利用可能
@@ -187,6 +196,9 @@ def set_constants(input: dict):
   if 'change_V_supply_d_t_i_max' in input:
     global change_V_supply_d_t_i_max
     change_V_supply_d_t_i_max = int(input['change_V_supply_d_t_i_max'])
+  if 'carry_over_heat' in input:
+    global carry_over_heat
+    carry_over_heat = int(input['carry_over_heat'])
   #以下、潜熱評価モデル追加対応
   if 'H_A' in input:
     if 'A_f_hex_small' in input['H_A']:

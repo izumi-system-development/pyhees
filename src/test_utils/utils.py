@@ -32,12 +32,12 @@ def expected_inputs():
 @pytest.fixture
 def expected_result_type1():
     """ 上記の入力内容で期待される結果 """
-    return ResultSummary(E_C=14746.052998129611, E_H=36310.32799729332)
+    return ResultSummary(E_C=14773.136498249627, E_H=36558.649546681496)
 
 @pytest.fixture
 def expected_result_type2():
     """ 上記の入力内容で期待される結果 """
-    return ResultSummary(E_C=14695.841130521072, E_H=40812.21298826678)
+    return ResultSummary(E_C=13839.429941240252, E_H=40692.8527046848)
 
 def deep_update(d, u):
     for k, v in u.items():

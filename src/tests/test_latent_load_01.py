@@ -8,6 +8,8 @@ import jjjexperiment.input as input
 from jjjexperiment.constants import PROCESS_TYPE_1, PROCESS_TYPE_2, PROCESS_TYPE_3
 import jjjexperiment.constants as consts
 
+from pyhees.section3_2 import calc_r_env
+
 from jjjexperiment.calc \
     import calc_E_E_H_d_t, calc_E_E_C_d_t, calc_Q_UT_A
 from pyhees.section4_1 \
@@ -18,6 +20,7 @@ from pyhees.section4_2_a \
     import get_A_f_hex, get_A_e_hex, get_alpha_c_hex_C, get_alpha_c_hex_H, get_E_E_fan_H_d_t, get_E_E_fan_C_d_t, get_q_hs_C_d_t, get_q_hs_H_d_t
 
 from test_utils.utils import INPUT_SAMPLE_TYPE3_PATH
+from jjjexperiment.logger import LimitedLoggerAdapter as _logger
 
 
 class Testコイル特性:
@@ -235,82 +238,115 @@ def kw2mjph(x: float) -> float:
     """ kW -> MJ/h へ単位変換する """
     return x * 3600 / 1000
 
-class Test風量特性_熱源機_低出力:
+class Test風量特性_熱源機:
 
-    _inputs: dict
-    _sut: np.ndarray
     _H: np.ndarray
     _C: np.ndarray
     _M: np.ndarray
+    _region: int
+
+    _airvolume_minimum_H = 15.0  # m3/min
+    _airvolume_minimum_C = 16.0  # m3/min
+    _airvolume_maximum_H = 25.0  # m3/min
+    _airvolume_maximum_C = 26.0  # m3/min
+
+    _C1, _C0 = 2.4855, 10.209
+    _H1, _H0 = 1.2946, 12.084
 
     @classmethod
     def setup_class(cls):
-        """ 熱源機の出力が 2.5 kW 未満の時
-        """
+        """ 特性曲線を指定 """
         inputs = json.load(open(INPUT_SAMPLE_TYPE3_PATH, 'r'))
-        _, _, _, _, _, region, _ = input.get_basic(inputs)
-        cls._H, cls._C, cls._M = get_season_array_d_t(region)
+        fixture_C = {
+            'airvolume_coeff': [0, 0, 0, cls._C1, cls._C0],
+            'airvolume_minimum': cls._airvolume_minimum_C,
+            'airvolume_maximum': cls._airvolume_maximum_C,
+        }
+        inputs['C_A'].update(fixture_C)
+        fixture_H = {
+            'airvolume_coeff': [0, 0, 0, cls._H1, cls._H0],
+            'airvolume_minimum': cls._airvolume_minimum_H,
+            'airvolume_maximum': cls._airvolume_maximum_H,
+        }
+        inputs['H_A'].update(fixture_H)
+        consts.set_constants(inputs)
 
-        Q_hat_hs_d_t = np.ones(24 * 365) * kw2mjph(2.4)  # 2.4 kw を設定
-        cls._sut = get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t, region)
+        _, _, _, _, _, cls._region, _ = input.get_basic(inputs)
+        cls._H, cls._C, cls._M = get_season_array_d_t(cls._region)
 
-    def test_常時_指定定数(self):
-        indices_H = np.where(self._H == True)[0]
+    def test_夏季の冷房出力_特性曲線上(self):
+        def x(y):
+            """簡易的に二次曲線でテストする"""
+            return (y - consts.airvolume_coeff_a0_C) / consts.airvolume_coeff_a1_C
+
+        x1 = x(consts.airvolume_minimum_C)
+        x2 = x(consts.airvolume_maximum_C)
+        x_mid = math.floor(x1 + (x2-x1) / 2)  # 非キャップ座標
+
+        Q_hat_hs_d_t = np.ones(24 * 365) * kw2mjph(x_mid)
+        sut = get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t, self._region, for_cooling=True)
+
+        def y(x):
+            """簡易的に二次曲線でテストする"""
+            return consts.airvolume_coeff_a1_C * x + consts.airvolume_coeff_a0_C
+
         indices_C = np.where(self._C == True)[0]
-        indices_M = np.where(self._M == True)[0]
+        nptest.assert_allclose(sut[indices_C], y(x_mid) * 60)  # m3/h
 
-        # H, M, C 期に関わらず、常に指定された下限値となる
-        nptest.assert_allclose(self._sut[indices_H], consts.airvolume_minimum * 60 * 60)  # m3/h
-        nptest.assert_allclose(self._sut[indices_C], consts.airvolume_minimum * 60 * 60)  # m3/h
-        nptest.assert_allclose(self._sut[indices_M], consts.airvolume_minimum * 60 * 60)  # m3/h
+    def test_夏季の暖房出力_下限キャップ(self):
+        # テキトーな高めの値 10.0 kw
+        Q_hat_hs_d_t = np.ones(24 * 365) * kw2mjph(10)
+        sut = get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t, self._region, for_cooling=False)
 
-
-class Test風量特性_熱源機_高出力:
-
-    _inputs: dict
-    _sut: np.ndarray
-    _expected: float
-    _H: np.ndarray
-    _C: np.ndarray
-    _M: np.ndarray
-
-    @classmethod
-    def setup_class(cls):
-        """ 熱源機の出力が 2.5 kW 以上の時
-        """
-        inputs = json.load(open(INPUT_SAMPLE_TYPE3_PATH, 'r'))
-        C1, C0 = 0.092, -0.06
-        fixture = {'airvolume_coeff': [0, 0, 0, C1, C0]}
-
-        # 暖房・冷房に共通して使用
-        inputs['H_A'].update(fixture)
-        inputs['C_A'].update(fixture)
-
-        cls._inputs = inputs
-        consts.set_constants(cls._inputs)  #NOTE: calc通さないときglobal変数更新のため必要
-
-        _, _, _, _, _, region, _ = input.get_basic(cls._inputs)
-        cls._H, cls._C, cls._M = get_season_array_d_t(region)
-
-        Q_hat_hs_d_t_kw = np.ones(24 * 365) * kw2mjph(2.5)  # 2.5 kw を設定
-        cls._sut = get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t_kw, region)
-        cls._expected = (C1 * 2.5 + C0) * 3600  # 一次式のケースでテスト [m3/h]
-
-    def test_暖冷房時_四次式計算(self):
-        """ 熱源機出力 2.5 kW 以上なら 暖房期・冷房期は四次式算定
-        """
-        indices_H = np.where(self._H == True)[0]
+        # 夏季の暖房出力は最低値となる
         indices_C = np.where(self._C == True)[0]
+        nptest.assert_allclose(sut[indices_C], self._airvolume_minimum_H * 60)  # m3/h
 
-        nptest.assert_allclose(self._sut[indices_H], self._expected)  # m3/h
-        nptest.assert_allclose(self._sut[indices_C], self._expected)  # m3/h
+    def test_夏季の冷房出力_上限キャップ(self):
+        # ありえない高めの値 100.0 kw
+        Q_hat_hs_d_t = np.ones(24 * 365) * kw2mjph(100)
+        sut = get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t, self._region, for_cooling=True)
 
-    def test_中間期_常に指定定数(self):
-        """ 熱源機出力 2.5 kW 以上なら 中間期は常に指定の最低風量となる
-        """
-        indices_M = np.where(self._M == True)[0]
+        # 夏季の冷房出力に上限キャップが有効
+        indices_C = np.where(self._C == True)[0]
+        nptest.assert_allclose(sut[indices_C], self._airvolume_maximum_C * 60)  # m3/h
 
-        nptest.assert_allclose(self._sut[indices_M], self._expected)  # m3/h
+    def test_冬季の暖房出力_特性曲線上(self):
+        def x(y):
+            """簡易的に二次曲線でテストする"""
+            return (y - consts.airvolume_coeff_a0_H) / consts.airvolume_coeff_a1_H
+
+        x1 = x(consts.airvolume_minimum_H)
+        x2 = x(consts.airvolume_maximum_H)
+        x_mid = math.floor(x1 + (x2-x1) / 2)  # 非キャップ座標
+
+        Q_hat_hs_d_t = np.ones(24 * 365) * kw2mjph(x_mid)
+        sut = get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t, self._region, for_cooling=False)
+
+        def y(x):
+            """簡易的に二次曲線でテストする"""
+            return consts.airvolume_coeff_a1_H * x + consts.airvolume_coeff_a0_H
+
+        indices_H = np.where(self._H == True)[0]
+        nptest.assert_allclose(sut[indices_H], y(x_mid) * 60)  # m3/h
+
+    def test_冬季の冷房出力_下限キャップ(self):
+        # テキトーな高めの値 10.0 kw
+        Q_hat_hs_d_t = np.ones(24 * 365) * kw2mjph(10)
+        sut = get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t, self._region, for_cooling=True)
+
+        # 冬季の冷房出力は最低値となる
+        indices_H = np.where(self._H == True)[0]
+        nptest.assert_allclose(sut[indices_H], self._airvolume_minimum_C * 60)  # m3/h
+
+    def test_冬季の暖房出力_上限キャップ(self):
+        # ありえない高めの値 100.0 kw
+        Q_hat_hs_d_t = np.ones(24 * 365) * kw2mjph(100)
+        sut = get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t, self._region, for_cooling=False)
+
+        # 冬季の暖房出力に上限キャップが有効
+        indices_H = np.where(self._H == True)[0]
+        nptest.assert_allclose(sut[indices_H], self._airvolume_maximum_H * 60)  # m3/h
 
 
 def prepare_args_for_calc_Q_UT_A() -> dict:
@@ -334,7 +370,6 @@ def prepare_args_for_calc_Q_UT_A() -> dict:
     fixtures = {
         "case_name": "-",
         "climateFile": "-",
-        "outdoorFile": "-",
         "loadFile": "-",
         "Q": 2.647962191872085,
         "mu_C": 0.07170453031312457,
@@ -384,12 +419,18 @@ def prepare_args_for_calc_Q_UT_A() -> dict:
         mode_OR = fixtures["mode_OR"],
         HEX =     fixtures["HEX"])
 
+    r_env = calc_r_env(
+        method='当該住戸の外皮の部位の面積等を用いて外皮性能を評価する方法',
+        A_env=ENV['A_env'],
+        A_A=A_A
+    )
+
     main_args = {
         'case_name': fixtures['case_name'],
         'A_A': A_A,
         'A_MR': A_MR,
         'A_OR': A_OR,
-        'A_env': ENV['A_env'],
+        'r_env': r_env,
         'mu_H': fixtures["mu_H"],
         'mu_C': fixtures["mu_C"],
         'q_rtd_H': q_rtd_H,
@@ -409,7 +450,6 @@ def prepare_args_for_calc_Q_UT_A() -> dict:
         'YUCACO_r_A_ufvnt': fixtures["YUCACO_r_A_ufvnt"],
         'R_g': fixtures["R_g"],
         'climateFile': fixtures["climateFile"],
-        'outdoorFile': fixtures["outdoorFile"],
     }
     H_args = {
         'VAV': H_A['VAV'],
@@ -649,7 +689,7 @@ class Testコンプレッサ効率特性_暖房:
             "input_C_af_H":  main_args['input_C_af_H'],
             "EquipmentSpec": others['EquipmentSpec_H'],
             "f_SFP_H":       others['f_SFP_H'],
-            "outdoorFile":   main_args["outdoorFile"],
+            "climateFile": main_args['climateFile'],
         }
 
     _testBaseArgs: dict
@@ -686,7 +726,7 @@ class Testコンプレッサ効率特性_暖房:
         self._testBaseArgs["type"] = PROCESS_TYPE_2
         E_E_H_d_t2, _, E_E_fan_H_d_t2 = calc_E_E_H_d_t(**self._testBaseArgs)
 
-        assert not np.array_equal(E_E_fan_H_d_t1, E_E_fan_H_d_t2), "誤って送風機分の消費電力にも方式による差が生じています"
+        assert np.array_equal(E_E_fan_H_d_t1, E_E_fan_H_d_t2), "誤って送風機分の消費電力にも方式による差が生じています"
         assert not np.array_equal(E_E_H_d_t1, E_E_H_d_t2), "方式によって消費電力の計算値には差が生じなければなりません"
 
     def test_時間別消費電力量_方式3_係数設定有効(self):
@@ -757,7 +797,7 @@ class Testコンプレッサ効率特性_冷房:
             "input_C_af_C":  main_args['input_C_af_C'],
             "EquipmentSpec": others['EquipmentSpec_C'],
             "f_SFP_C": others['f_SFP_C'],
-            "outdoorFile": main_args['outdoorFile'],
+            "climateFile": main_args['climateFile'],
         }
 
     _testBaseArgs: dict
@@ -804,7 +844,7 @@ class Testコンプレッサ効率特性_冷房:
         self._testBaseArgs["type"] = PROCESS_TYPE_2
         E_E_C_d_t_T2, E_E_fan_C_d_t_T2, _, _ = calc_E_E_C_d_t(**self._testBaseArgs)
 
-        assert not np.array_equal(E_E_fan_C_d_t_T1, E_E_fan_C_d_t_T2), "誤って送風機分の消費電力にも方式による差が生じています"
+        assert np.array_equal(E_E_fan_C_d_t_T1, E_E_fan_C_d_t_T2), "誤って送風機分の消費電力にも方式による差が生じています"
         assert not np.array_equal(E_E_C_d_t_T1, E_E_C_d_t_T2), "方式によって消費電力の計算値には差が生じなければなりません"
 
     def test_時間別消費電力量_方式3_係数設定有効(self):

@@ -54,7 +54,7 @@ def calc_Q_UT_A(A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs
 
     Args:
       A_A: param A_MR:
-      A_OR: param A_env:
+      A_OR: param r_env:
       mu_H: param mu_C:
       q_hs_rtd_H: param q_hs_rtd_C:
       V_hs_dsgn_H: param V_hs_dsgn_C:
@@ -649,6 +649,40 @@ def get_L_star_H_d_t_i(L_H_d_t_i, Q_star_trs_prt_d_t_i, region):
     L_star_H_d_t_i[Hf] = np.clip(L_H_d_t_i[Hf] + Q_star_trs_prt_d_t_i[Hf], 0, None)
     return L_star_H_d_t_i
 
+def get_L_star_H_i_2023(L_H_d_t_i, Q_star_trs_prt_d_t_i, region, A_HCZ_i, A_HCZ_R_i, Theta_star_HBR_d_t, Theta_HBR_d_t_i, t: int):
+    """get_L_star_H_d_t_i のループ用 時点単発計算 \n
+
+    前時刻の値を利用: \n
+      theta_star_HBR_d_t: 日付dの時刻tにおける負荷バランス時の居室の室温（℃） \n
+      Theta_HBR_d_t_i: xxx \n
+    Extended Args: \n
+      A_HCZ_i: xxx \n
+      A_HCZ_R_i: 標準住戸における暖冷房区画の床面積[m2] \n
+      idx: 時系列データにおけるインデックス \n
+    Returns: \n
+      一時点の 日付dの時刻tにおける暖冷房区画iの1時間当たりの熱損失を含む負荷バランス時の暖房負荷 \n
+    """
+    H, C, M = get_season_array_d_t(region)
+    L_H_d_t_i = L_H_d_t_i[:5]
+    f = L_H_d_t_i > 0
+    Hf = np.logical_and(H, f)[:, t]  # 5x1
+
+    A_HCZ_i = A_HCZ_i.reshape(-1,1)
+    A_HCZ_R_i = A_HCZ_R_i.reshape(-1,1)
+
+    if 0 < t:
+        cbri = get_C_BR_i(A_HCZ_i, A_HCZ_R_i)
+        arr_theta = np.max(Theta_HBR_d_t_i[:, t-1:t] - Theta_star_HBR_d_t[t-1], 0)  # 5x1
+        carry_over = -1 * cbri * arr_theta
+    else:
+        carry_over = np.zeros((5, 1))
+
+    assert((carry_over >= 0).all(), "熱の繰り越しが想定外")
+    arr = L_H_d_t_i[:, t:t+1] + Q_star_trs_prt_d_t_i[:, t:t+1] + carry_over
+
+    L_star_H_i = np.zeros((5, 1))
+    L_star_H_i[Hf] = np.clip(arr, 0, None)[Hf]
+    return L_star_H_i
 
 def get_L_star_CS_d_t_i(L_CS_d_t_i, Q_star_trs_prt_d_t_i, region):
     """(9-2)(9-2)(9-3)
@@ -672,6 +706,43 @@ def get_L_star_CS_d_t_i(L_CS_d_t_i, Q_star_trs_prt_d_t_i, region):
     L_star_CS_d_t_i = np.zeros((5, 24 * 365))
     L_star_CS_d_t_i[Cf] = np.clip(L_CS_d_t_i[Cf] + Q_star_trs_prt_d_t_i[Cf], 0, None)
     return L_star_CS_d_t_i
+
+def get_L_star_CS_i_2023(L_CS_d_t_i, Q_star_trs_prt_d_t_i, region, A_HCZ_i, A_HCZ_R_i, Theta_star_HBR_d_t, Theta_HBR_d_t_i, t: int):
+    """get_L_star_CS_d_t_i のループ用 時点単発計算 \n
+
+    前時刻の値を利用: \n
+      Theta_star_HBR_d_t: xxx \n
+      Theta_HBR_d_t_i: xxx \n
+    Extended Args: \n
+      A_HCZ_i: xxx  \n
+      A_HCZ_R_i: 標準住戸における暖冷房区画の床面積[m2]  \n
+      t: 時系列データにおけるインデックス \n
+    Returns: \n
+      一時点の 日付dの時刻tにおける暖冷房区画iの1時間当たりの熱損失を含む負荷バランス時の冷房顕熱負荷 \n
+
+    """
+    H, C, M = get_season_array_d_t(region)
+    L_CS_d_t_i = L_CS_d_t_i[:5]
+    f = L_CS_d_t_i > 0
+    Cf = np.logical_and(C, f)[:, t]  # 5x1
+
+    A_HCZ_i = A_HCZ_i.reshape(-1,1)
+    A_HCZ_R_i = A_HCZ_R_i.reshape(-1,1)
+
+    if 0 < t:
+        cbri = get_C_BR_i(A_HCZ_i, A_HCZ_R_i)
+        arr_theta = np.max(Theta_star_HBR_d_t[t-1] - Theta_HBR_d_t_i[:, t-1:t], 0)  # 5x1
+        carry_over = -1 * cbri * arr_theta
+    else:
+        carry_over = np.zeros((5, 1))
+
+    assert((carry_over >= 0).all(), "熱の繰り越しが想定外")
+    # NOTE: MATRIX[:, 0] だと shape(5, ) となりダメ MATRIX[:, 0:1] と書くと shape(5,1)
+    arr = L_CS_d_t_i[:, t:t+1] + Q_star_trs_prt_d_t_i[:, t:t+1] + carry_over
+
+    L_star_CS_i = np.zeros((5, 1))
+    L_star_CS_i[Cf] = np.clip(arr, 0, None)[Cf]
+    return L_star_CS_i
 
 def get_L_star_CL_d_t_i(L_CS_d_t_i, L_CL_d_t_i, region):
     """(10-1)(10-2)(10-3)
@@ -1845,6 +1916,84 @@ def get_Theta_HBR_d_t_i(Theta_star_HBR_d_t, V_supply_d_t_i, Theta_supply_d_t_i, 
 
     return Theta_HBR_d_t_i
 
+def get_Theta_HBR_i_2023(Theta_star_HBR_d_t, V_supply_d_t_i, Theta_supply_d_t_i, U_prt, A_prt_i, Q, A_HCZ_i, L_star_H_d_t_i, L_star_CS_d_t_i, region, A_HCZ_R_i, Theta_HBR_d_t_i, t: int):
+    """ get_Theta_HBR_d_t_i のループ用 時点単発計算
+
+    前時刻の値を利用: \
+      theta_star_HBR_d_t: 日付dの時刻tにおける負荷バランス時の居室の室温（℃） \
+      Theta_HBR_d_t_i: xxx \
+    Extended Args: \
+      A_HCZ_R_i: 標準住戸における暖冷房区画の床面積[m2] \
+      idx: 時系列データにおけるインデックス \
+
+    Returns: \
+      (日付dの時刻tにおける)暖冷房区画iの実際の居室の室温[℃] \
+
+    """
+    H, C, M = get_season_array_d_t(region)
+    c_p_air = get_c_p_air()
+    rho_air = get_rho_air()
+
+    # NOTE: shape(5,) -> shape(5,1)
+    A_prt_i = A_prt_i.reshape(-1,1)
+    A_HCZ_i = A_HCZ_i.reshape(-1,1)
+    A_HCZ_R_i = A_HCZ_R_i.reshape(-1,1)
+
+    # 暖房期 (46-1)
+    if H[t]:
+      # NOTE: 時系列データの最初の計算では繰り越し:なしとしています
+      cbri = get_C_BR_i(A_HCZ_i, A_HCZ_R_i)
+      arr_theta = (Theta_HBR_d_t_i[:, t-1:t] - Theta_star_HBR_d_t[t]) if 0 < t else 0
+      capacity = cbri * arr_theta  # 熱容量[J]
+
+      arr_above_1 = c_p_air * rho_air * V_supply_d_t_i[:, t:t+1] * (Theta_supply_d_t_i[:, t:t+1] - Theta_star_HBR_d_t[t])
+      arr_above_2 = -1 * L_star_H_d_t_i[:, t:t+1] * 10 ** 6  # MJ/h -> J/h
+
+      arr_below_1 = c_p_air * rho_air * V_supply_d_t_i[:, t:t+1]
+      arr_below_2 = (U_prt * A_prt_i + Q * A_HCZ_i) * 3600
+
+      Theta_HBR_i = Theta_star_HBR_d_t[t:t+1] \
+        + (arr_above_1 + capacity + arr_above_2) / (arr_below_1 + arr_below_2 + cbri)
+
+      # 暖冷房区画iの実際の居室の室温θ_(HBR,d,t,i)は、暖房期において負荷バランス時の居室の室温θ_(HBR,d,t)^*を下回る場合、
+      # 負荷バランス時の居室の室温θ_(HBR,d,t)^*に等しい
+      Theta_HBR_i = np.clip(Theta_HBR_i, Theta_star_HBR_d_t[t], None)
+
+    # 冷房期 (46-2)
+    elif C[t]:
+      cbri = get_C_BR_i(A_HCZ_i, A_HCZ_R_i)
+      arr_theta = (Theta_star_HBR_d_t[t] - Theta_HBR_d_t_i[:, t-1:t])
+      capacity = cbri * arr_theta  # 熱容量[J]
+
+      arr_above_1 = c_p_air * rho_air * V_supply_d_t_i[:, t:t+1] * (Theta_star_HBR_d_t[t] - Theta_supply_d_t_i[:, t:t+1])
+      arr_above_2 = -1 * L_star_CS_d_t_i[:, t:t+1] * 10 ** 6
+
+      arr_below_1 = c_p_air * rho_air * V_supply_d_t_i[:, t:t+1]
+      arr_below_2 = (U_prt * A_prt_i + Q * A_HCZ_i) * 3600
+
+      Theta_HBR_i = Theta_star_HBR_d_t[t:t+1] \
+        -1 * (arr_above_1 + capacity + arr_above_2) / (arr_below_1 + arr_below_2 + cbri)
+
+      # 冷房期において負荷バランス時の居室の室温θ_(HBR,d,t)^*を上回る場合、負荷バランス時の居室の室温θ_(HBR,d,t)^*に等しい
+      Theta_HBR_i = np.clip(Theta_HBR_i, None, Theta_star_HBR_d_t[t])
+
+    # 中間期 (46-3)
+    elif M[t]:
+      Theta_HBR_i = Theta_star_HBR_d_t[t:t+1]
+
+    return Theta_HBR_i
+
+def get_C_BR_i(A_HCZ_i, A_HCZ_R_i):
+    """区画i毎の居室の熱容量[J/K]"""
+    Alpha_HCZ_i = np.array([
+        [constants.Alpha_HCZ_i[0]],
+        [constants.Alpha_HCZ_i[1]],
+        [constants.Alpha_HCZ_i[2]],
+        [constants.Alpha_HCZ_i[3]],
+        [constants.Alpha_HCZ_i[4]]
+      ])
+    C_BR_R_i = 12.6 * 1000 * A_HCZ_R_i * 2.4 + Alpha_HCZ_i * 1000
+    return A_HCZ_i / A_HCZ_R_i * C_BR_R_i  # 5x1
 
 def get_X_HBR_d_t_i(X_star_HBR_d_t):
     """(47)
@@ -1902,6 +2051,48 @@ def get_Theta_NR_d_t(Theta_star_NR_d_t, Theta_star_HBR_d_t, Theta_HBR_d_t_i, A_N
 
     return Theta_NR_d_t
 
+def get_Theta_NR_2023(Theta_star_NR_d_t, Theta_star_HBR_d_t, Theta_HBR_d_t_i, A_NR, V_vent_l_NR_d_t, V_dash_supply_d_t_i, V_supply_d_t_i, U_prt, A_prt_i, Q, Theta_NR_d_t, t: int):
+    """ get_Theta_NR_d_t のループ用 時点単発計算
+
+    前時刻の値を利用: \
+      Theta_star_NR_d_t: 日付dの時刻tにおける実際の非居室の室温（℃） \
+      Theta_NR_d_t_i: xxx \
+    Extended Args:
+      idx: 時系列データにおけるインデックス
+
+    Returns:
+      (日付dの時刻tにおける)実際の非居室の室温 [℃]
+
+    """
+    c_p_air = get_c_p_air()
+    rho_air = get_rho_air()
+
+    # NOTE: shape(5,) -> shape(5,1)
+    A_prt_i = A_prt_i.reshape(-1,1)
+
+    # (48d)
+    k_dash_i = c_p_air * rho_air * (V_dash_supply_d_t_i[:, t:t+1] / 3600) + U_prt * A_prt_i  # 5x1
+    # (48c)
+    k_prt_i = c_p_air * rho_air * (V_supply_d_t_i[:, t:t+1] / 3600) + U_prt * A_prt_i  # 5x1
+    # (48b)
+    k_evp = (Q - 0.35 * 0.5 * 2.4) * A_NR + c_p_air * rho_air * (V_vent_l_NR_d_t[t] / 3600)  # 5x1
+
+    # CHECK: 資料 Theta_NR_d_t_i -> Theta_NR_d_t が正かな?
+    arr1 = -1 * np.sum(k_dash_i, axis=0) * (Theta_star_HBR_d_t[t] - Theta_star_NR_d_t[t])
+    arr2 = np.sum(k_prt_i * (Theta_HBR_d_t_i[:, t:t+1] - Theta_star_NR_d_t[t]), axis=0)
+    arr3 = np.sum(get_C_NR_i(A_NR) * (Theta_NR_d_t[t-1:t] - Theta_star_NR_d_t[t]), axis=0)
+
+    # (48a)
+    arr_above = arr1 + arr2 + arr3
+    arr_below = k_evp + np.sum(k_prt_i, axis=0) + np.sum(get_C_NR_i(A_NR), axis=0)
+    Theta_NR = Theta_star_NR_d_t[t] + arr_above / arr_below
+
+    return Theta_NR
+
+def get_C_NR_i(A_NR) -> float:
+    """区画i毎の非居室の熱容量[J/K]"""
+    C_NR_R_i = 12.6 * 1000 * constants.A_NR_R * 2.4 + constants.Alpha_NR_i * 1000  # 5x1
+    return A_NR / constants.A_NR_R * C_NR_R_i
 
 def get_X_NR_d_t(X_star_NR_d_t):
     """(49)
