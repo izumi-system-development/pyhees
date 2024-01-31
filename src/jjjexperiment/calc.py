@@ -330,274 +330,542 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         L_star_CL_d_t_i_5 = L_star_CL_d_t_i[4]
     )
 
-    # (9)　熱取得を含む負荷バランス時の冷房顕熱負荷
-    L_star_CS_d_t_i = dc.get_L_star_CS_d_t_i(L_CS_d_t_i, Q_star_trs_prt_d_t_i, region)
-    df_output = df_output.assign(
-        L_star_CS_d_t_i_1 = L_star_CS_d_t_i[0],
-        L_star_CS_d_t_i_2 = L_star_CS_d_t_i[1],
-        L_star_CS_d_t_i_3 = L_star_CS_d_t_i[2],
-        L_star_CS_d_t_i_4 = L_star_CS_d_t_i[3],
-        L_star_CS_d_t_i_5 = L_star_CS_d_t_i[4]
-    )
+    if constants.carry_over_heat == 2:
+        Theta_HBR_d_t_i = np.zeros((5, 24 * 365))
+        Theta_NR_d_t = np.zeros((24 * 365))
+        for hour in range(0, 24 * 365):
+            # TODO: ここの中はまだ元のコードのコピペ。時刻別に分解する必要がある。
 
-    # (8)　熱損失を含む負荷バランス時の暖房負荷
-    L_star_H_d_t_i = dc.get_L_star_H_d_t_i(L_H_d_t_i, Q_star_trs_prt_d_t_i, region)
-    df_output = df_output.assign(
-        L_star_H_d_t_i_1 = L_star_H_d_t_i[0],
-        L_star_H_d_t_i_2 = L_star_H_d_t_i[1],
-        L_star_H_d_t_i_3 = L_star_H_d_t_i[2],
-        L_star_H_d_t_i_4 = L_star_H_d_t_i[3],
-        L_star_H_d_t_i_5 = L_star_H_d_t_i[4]
-    )
+            # (9)　熱取得を含む負荷バランス時の冷房顕熱負荷
+            L_star_CS_d_t_i = dc.get_L_star_CS_d_t_i(L_CS_d_t_i, Q_star_trs_prt_d_t_i, region)
+            # (8)　熱損失を含む負荷バランス時の暖房負荷
+            L_star_H_d_t_i = dc.get_L_star_H_d_t_i(L_H_d_t_i, Q_star_trs_prt_d_t_i, region)
+            df_output = df_output.assign(
+                L_star_H_d_t_i_1 = L_star_H_d_t_i[0],
+                L_star_H_d_t_i_2 = L_star_H_d_t_i[1],
+                L_star_H_d_t_i_3 = L_star_H_d_t_i[2],
+                L_star_H_d_t_i_4 = L_star_H_d_t_i[3],
+                L_star_H_d_t_i_5 = L_star_H_d_t_i[4]
+            )
 
-    ####################################################################################################################
-    if type == PROCESS_TYPE_1 or type == PROCESS_TYPE_3:
-        # (33)
-        L_star_CL_d_t = dc.get_L_star_CL_d_t(L_star_CL_d_t_i)
-        df_output['L_star_CL_d_t'] = L_star_CL_d_t
+            ####################################################################################################################
+            if type == PROCESS_TYPE_1 or type == PROCESS_TYPE_3:
+                # (33)
+                L_star_CL_d_t = dc.get_L_star_CL_d_t(L_star_CL_d_t_i)
+                df_output['L_star_CL_d_t'] = L_star_CL_d_t
 
-        # (32)
-        L_star_CS_d_t = dc.get_L_star_CS_d_t(L_star_CS_d_t_i)
-        df_output['L_star_CS_d_t'] = L_star_CL_d_t
+                # (32)
+                L_star_CS_d_t = dc.get_L_star_CS_d_t(L_star_CS_d_t_i)
+                df_output['L_star_CS_d_t'] = L_star_CL_d_t
 
-        # (31)
-        L_star_CL_max_d_t = dc.get_L_star_CL_max_d_t(L_star_CS_d_t)
-        df_output['L_star_CL_d_t'] = L_star_CL_d_t
+                # (31)
+                L_star_CL_max_d_t = dc.get_L_star_CL_max_d_t(L_star_CS_d_t)
+                df_output['L_star_CL_d_t'] = L_star_CL_d_t
 
-        # (30)
-        L_star_dash_CL_d_t = dc.get_L_star_dash_CL_d_t(L_star_CL_max_d_t, L_star_CL_d_t)
-        df_output['L_star_dash_CL_d_t'] = L_star_dash_CL_d_t
+                # (30)
+                L_star_dash_CL_d_t = dc.get_L_star_dash_CL_d_t(L_star_CL_max_d_t, L_star_CL_d_t)
+                df_output['L_star_dash_CL_d_t'] = L_star_dash_CL_d_t
 
-        # (29)
-        L_star_dash_C_d_t = dc.get_L_star_dash_C_d_t(L_star_CS_d_t, L_star_dash_CL_d_t)
-        df_output['L_star_dash_C_d_t'] = L_star_dash_C_d_t
+                # (29)
+                L_star_dash_C_d_t = dc.get_L_star_dash_C_d_t(L_star_CS_d_t, L_star_dash_CL_d_t)
+                df_output['L_star_dash_C_d_t'] = L_star_dash_C_d_t
 
-        # (28)
-        SHF_dash_d_t = dc.get_SHF_dash_d_t(L_star_CS_d_t, L_star_dash_C_d_t)
-        df_output['SHF_dash_d_t'] = SHF_dash_d_t
+                # (28)
+                SHF_dash_d_t = dc.get_SHF_dash_d_t(L_star_CS_d_t, L_star_dash_C_d_t)
+                df_output['SHF_dash_d_t'] = SHF_dash_d_t
 
-        # (27)
-        Q_hs_max_C_d_t = dc.get_Q_hs_max_C_d_t(type, q_hs_rtd_C, input_C_af_C)
-        df_output['Q_hs_max_C_d_t'] = Q_hs_max_C_d_t
+                # (27)
+                Q_hs_max_C_d_t = dc.get_Q_hs_max_C_d_t(type, q_hs_rtd_C, input_C_af_C)
+                df_output['Q_hs_max_C_d_t'] = Q_hs_max_C_d_t
 
-        # (26)
-        Q_hs_max_CL_d_t = dc.get_Q_hs_max_CL_d_t(Q_hs_max_C_d_t, SHF_dash_d_t, L_star_dash_CL_d_t)
-        df_output['Q_hs_max_CL_d_t'] = Q_hs_max_CL_d_t
+                # (26)
+                Q_hs_max_CL_d_t = dc.get_Q_hs_max_CL_d_t(Q_hs_max_C_d_t, SHF_dash_d_t, L_star_dash_CL_d_t)
+                df_output['Q_hs_max_CL_d_t'] = Q_hs_max_CL_d_t
 
-        # (25)
-        Q_hs_max_CS_d_t = dc.get_Q_hs_max_CS_d_t(Q_hs_max_C_d_t, SHF_dash_d_t)
-        df_output['Q_hs_max_CS_d_t'] = Q_hs_max_CS_d_t
+                # (25)
+                Q_hs_max_CS_d_t = dc.get_Q_hs_max_CS_d_t(Q_hs_max_C_d_t, SHF_dash_d_t)
+                df_output['Q_hs_max_CS_d_t'] = Q_hs_max_CS_d_t
 
-        # (24)
-        C_df_H_d_t = dc.get_C_df_H_d_t(Theta_ex_d_t, h_ex_d_t)
-        df_output['C_df_H_d_t'] = C_df_H_d_t
+                # (24)
+                C_df_H_d_t = dc.get_C_df_H_d_t(Theta_ex_d_t, h_ex_d_t)
+                df_output['C_df_H_d_t'] = C_df_H_d_t
 
-        # (23)
-        Q_hs_max_H_d_t = dc.get_Q_hs_max_H_d_t(type, q_hs_rtd_H, C_df_H_d_t, input_C_af_H)
-        df_output['Q_hs_max_H_d_t'] = Q_hs_max_H_d_t
+                # (23)
+                Q_hs_max_H_d_t = dc.get_Q_hs_max_H_d_t(type, q_hs_rtd_H, C_df_H_d_t, input_C_af_H)
+                df_output['Q_hs_max_H_d_t'] = Q_hs_max_H_d_t
 
-    elif type == PROCESS_TYPE_2 or type == PROCESS_TYPE_4:
-        # (24)　デフロストに関する暖房出力補正係数
-        C_df_H_d_t = dc.get_C_df_H_d_t(Theta_ex_d_t, h_ex_d_t)
-        df_output['C_df_H_d_t'] = C_df_H_d_t
+            elif type == PROCESS_TYPE_2 or type == PROCESS_TYPE_4:
+                # (24)　デフロストに関する暖房出力補正係数
+                C_df_H_d_t = dc.get_C_df_H_d_t(Theta_ex_d_t, h_ex_d_t)
+                df_output['C_df_H_d_t'] = C_df_H_d_t
 
-        # 最大暖房能力比
-        q_r_max_H = rac.get_q_r_max_H(q_max_H, q_rtd_H)
-        df_output3['q_r_max_H'] = [q_r_max_H]
+                # 最大暖房能力比
+                q_r_max_H = rac.get_q_r_max_H(q_max_H, q_rtd_H)
+                df_output3['q_r_max_H'] = [q_r_max_H]
 
-        # 最大暖房出力比
-        Q_r_max_H_d_t = rac.calc_Q_r_max_H_d_t(q_rtd_C, q_r_max_H, Theta_ex_d_t)
-        df_output['Q_r_max_H_d_t'] = Q_r_max_H_d_t
+                # 最大暖房出力比
+                Q_r_max_H_d_t = rac.calc_Q_r_max_H_d_t(q_rtd_C, q_r_max_H, Theta_ex_d_t)
+                df_output['Q_r_max_H_d_t'] = Q_r_max_H_d_t
 
-        # 最大暖房出力
-        Q_max_H_d_t = rac.calc_Q_max_H_d_t(Q_r_max_H_d_t, q_rtd_H, Theta_ex_d_t, h_ex_d_t, input_C_af_H)
-        Q_hs_max_H_d_t = Q_max_H_d_t
-        df_output['Q_hs_max_H_d_t'] = Q_hs_max_H_d_t
+                # 最大暖房出力
+                Q_max_H_d_t = rac.calc_Q_max_H_d_t(Q_r_max_H_d_t, q_rtd_H, Theta_ex_d_t, h_ex_d_t, input_C_af_H)
+                Q_hs_max_H_d_t = Q_max_H_d_t
+                df_output['Q_hs_max_H_d_t'] = Q_hs_max_H_d_t
 
-        # 最大冷房能力比
-        q_r_max_C = rac.get_q_r_max_C(q_max_C, q_rtd_C)
-        df_output3['q_r_max_C'] = [q_r_max_C]
+                # 最大冷房能力比
+                q_r_max_C = rac.get_q_r_max_C(q_max_C, q_rtd_C)
+                df_output3['q_r_max_C'] = [q_r_max_C]
 
-        # 最大冷房出力比
-        Q_r_max_C_d_t = rac.calc_Q_r_max_C_d_t(q_r_max_C, q_rtd_C, Theta_ex_d_t)
-        df_output['Q_r_max_C_d_t'] = Q_r_max_C_d_t
+                # 最大冷房出力比
+                Q_r_max_C_d_t = rac.calc_Q_r_max_C_d_t(q_r_max_C, q_rtd_C, Theta_ex_d_t)
+                df_output['Q_r_max_C_d_t'] = Q_r_max_C_d_t
 
-        # 最大冷房出力
-        Q_max_C_d_t = rac.calc_Q_max_C_d_t(Q_r_max_C_d_t, q_rtd_C, input_C_af_C)
-        Q_hs_max_C_d_t = Q_max_C_d_t
-        df_output['Q_hs_max_C_d_t'] = Q_hs_max_C_d_t
+                # 最大冷房出力
+                Q_max_C_d_t = rac.calc_Q_max_C_d_t(Q_r_max_C_d_t, q_rtd_C, input_C_af_C)
+                Q_hs_max_C_d_t = Q_max_C_d_t
+                df_output['Q_hs_max_C_d_t'] = Q_hs_max_C_d_t
 
-        # 冷房負荷最小顕熱比
-        SHF_L_min_c = rac.get_SHF_L_min_c()
-        df_output3['SHF_L_min_c'] = [SHF_L_min_c]
+                # 冷房負荷最小顕熱比
+                SHF_L_min_c = rac.get_SHF_L_min_c()
+                df_output3['SHF_L_min_c'] = [SHF_L_min_c]
 
-        # 最大冷房潜熱負荷
-        L_max_CL_d_t = rac.get_L_max_CL_d_t(np.sum(L_CS_d_t_i, axis=0), SHF_L_min_c)
-        df_output['L_max_CL_d_t'] = L_max_CL_d_t
+                # 最大冷房潜熱負荷
+                L_max_CL_d_t = rac.get_L_max_CL_d_t(np.sum(L_CS_d_t_i, axis=0), SHF_L_min_c)
+                df_output['L_max_CL_d_t'] = L_max_CL_d_t
 
-        # 補正冷房潜熱負荷
-        L_dash_CL_d_t = rac.get_L_dash_CL_d_t(L_max_CL_d_t, np.sum(L_CL_d_t_i, axis=0))
-        L_dash_C_d_t = rac.get_L_dash_C_d_t(np.sum(L_CS_d_t_i, axis=0), L_dash_CL_d_t)
-        df_output['L_dash_CL_d_t'] = L_dash_CL_d_t
-        df_output['L_dash_C_d_t'] = L_dash_C_d_t
+                # 補正冷房潜熱負荷
+                L_dash_CL_d_t = rac.get_L_dash_CL_d_t(L_max_CL_d_t, np.sum(L_CL_d_t_i, axis=0))
+                L_dash_C_d_t = rac.get_L_dash_C_d_t(np.sum(L_CS_d_t_i, axis=0), L_dash_CL_d_t)
+                df_output['L_dash_CL_d_t'] = L_dash_CL_d_t
+                df_output['L_dash_C_d_t'] = L_dash_C_d_t
 
-        # 冷房負荷補正顕熱比
-        SHF_dash_d_t = rac.get_SHF_dash_d_t(np.sum(L_CS_d_t_i, axis=0), L_dash_C_d_t)
-        df_output['SHF_dash_d_t'] = SHF_dash_d_t
+                # 冷房負荷補正顕熱比
+                SHF_dash_d_t = rac.get_SHF_dash_d_t(np.sum(L_CS_d_t_i, axis=0), L_dash_C_d_t)
+                df_output['SHF_dash_d_t'] = SHF_dash_d_t
 
-        # 最大冷房顕熱出力, 最大冷房潜熱出力
-        Q_max_CS_d_t = rac.get_Q_max_CS_d_t(Q_max_C_d_t, SHF_dash_d_t)
-        Q_max_CL_d_t = rac.get_Q_max_CL_d_t(Q_max_C_d_t, SHF_dash_d_t, L_dash_CL_d_t)
-        Q_hs_max_C_d_t = Q_max_C_d_t
-        Q_hs_max_CL_d_t = Q_max_CL_d_t
-        Q_hs_max_CS_d_t = Q_max_CS_d_t
-        df_output['Q_hs_max_C_d_t'] = Q_hs_max_C_d_t
-        df_output['Q_hs_max_CL_d_t'] = Q_hs_max_CL_d_t
-        df_output['Q_hs_max_CS_d_t'] = Q_hs_max_CS_d_t
+                # 最大冷房顕熱出力, 最大冷房潜熱出力
+                Q_max_CS_d_t = rac.get_Q_max_CS_d_t(Q_max_C_d_t, SHF_dash_d_t)
+                Q_max_CL_d_t = rac.get_Q_max_CL_d_t(Q_max_C_d_t, SHF_dash_d_t, L_dash_CL_d_t)
+                Q_hs_max_C_d_t = Q_max_C_d_t
+                Q_hs_max_CL_d_t = Q_max_CL_d_t
+                Q_hs_max_CS_d_t = Q_max_CS_d_t
+                df_output['Q_hs_max_C_d_t'] = Q_hs_max_C_d_t
+                df_output['Q_hs_max_CL_d_t'] = Q_hs_max_CL_d_t
+                df_output['Q_hs_max_CS_d_t'] = Q_hs_max_CS_d_t
+            else:
+                raise Exception('設備機器の種類の入力が不正です。')
+            ####################################################################################################################
+
+            # (20)　負荷バランス時の熱源機の入口における絶対湿度
+            X_star_hs_in_d_t = dc.get_X_star_hs_in_d_t(X_star_NR_d_t)
+            df_output['X_star_hs_in_d_t'] = X_star_hs_in_d_t
+
+            # (19)　負荷バランス時の熱源機の入口における空気温度
+            Theta_star_hs_in_d_t = dc.get_Theta_star_hs_in_d_t(Theta_star_NR_d_t)
+            df_output['Theta_star_hs_in_d_t'] = Theta_star_hs_in_d_t
+
+            # (18)　熱源機の出口における空気温度の最低値
+            X_hs_out_min_C_d_t = dc.get_X_hs_out_min_C_d_t(X_star_hs_in_d_t, Q_hs_max_CL_d_t, V_dash_supply_d_t_i)
+            df_output['X_hs_out_min_C_d_t'] = X_hs_out_min_C_d_t
+
+            # (22)　熱源機の出口における要求絶対湿度
+            X_req_d_t_i = dc.get_X_req_d_t_i(X_star_HBR_d_t, L_star_CL_d_t_i, V_dash_supply_d_t_i, region)
+            df_output = df_output.assign(
+                X_req_d_t_1 = X_req_d_t_i[0],
+                X_req_d_t_2 = X_req_d_t_i[1],
+                X_req_d_t_3 = X_req_d_t_i[2],
+                X_req_d_t_4 = X_req_d_t_i[3],
+                X_req_d_t_5 = X_req_d_t_i[4]
+            )
+
+            # (21)　熱源機の出口における要求空気温度
+            Theta_req_d_t_i = dc.get_Theta_req_d_t_i(Theta_sur_d_t_i, Theta_star_HBR_d_t, V_dash_supply_d_t_i,
+                                L_star_H_d_t_i, L_star_CS_d_t_i, l_duct_i, region)
+
+            if underfloor_air_conditioning_air_supply:
+                Theta_uf_d_t, Theta_g_surf_d_t = uf.calc_Theta(region, A_A, A_MR, A_OR, Q, YUCACO_r_A_ufvnt, underfloor_insulation, Theta_req_d_t_i[0], Theta_ex_d_t,
+                                                        V_dash_supply_d_t_i[0], '', L_H_d_t_i, L_CS_d_t_i, R_g)
+                df_output['Theta_req_d_t_1_bef'] = Theta_req_d_t_i[0]
+                df_output['Theta_uf_d_t_1_req'] = Theta_uf_d_t
+                if q_hs_rtd_H is not None:
+                    Theta_req_d_t_i[0] = np.where(Theta_req_d_t_i[0] > Theta_uf_d_t, 
+                                                  Theta_req_d_t_i[0] + (Theta_req_d_t_i[0] - Theta_uf_d_t),
+                                                  Theta_req_d_t_i[0])
+                else:
+                    Theta_req_d_t_i[0] = np.where(Theta_req_d_t_i[0] < Theta_uf_d_t, 
+                                                  Theta_req_d_t_i[0] + (Theta_req_d_t_i[0] - Theta_uf_d_t),
+                                                  Theta_req_d_t_i[0])
+
+                Theta_uf_d_t, Theta_g_surf_d_t = uf.calc_Theta(region, A_A, A_MR, A_OR, Q, YUCACO_r_A_ufvnt, underfloor_insulation, Theta_req_d_t_i[1], Theta_ex_d_t,
+                                                        V_dash_supply_d_t_i[1], '', L_H_d_t_i, L_CS_d_t_i, R_g)
+                df_output['Theta_req_d_t_2_bef'] = Theta_req_d_t_i[1]
+                df_output['Theta_uf_d_t_2_req'] = Theta_uf_d_t
+                if q_hs_rtd_H is not None:
+                    Theta_req_d_t_i[1] = np.where(Theta_req_d_t_i[1] > Theta_uf_d_t, 
+                                                  Theta_req_d_t_i[1] + (Theta_req_d_t_i[1] - Theta_uf_d_t),
+                                                  Theta_req_d_t_i[1])
+                else:
+                    Theta_req_d_t_i[1] = np.where(Theta_req_d_t_i[1] < Theta_uf_d_t, 
+                                                  Theta_req_d_t_i[1] + (Theta_req_d_t_i[1] - Theta_uf_d_t),
+                                                  Theta_req_d_t_i[1])
+
+            df_output = df_output.assign(
+                Theta_req_d_t_1 = Theta_req_d_t_i[0],
+                Theta_req_d_t_2 = Theta_req_d_t_i[1],
+                Theta_req_d_t_3 = Theta_req_d_t_i[2],
+                Theta_req_d_t_4 = Theta_req_d_t_i[3],
+                Theta_req_d_t_5 = Theta_req_d_t_i[4]
+            )
+
+            # (15)　熱源機の出口における絶対湿度
+            X_hs_out_d_t = dc.get_X_hs_out_d_t(X_NR_d_t, X_req_d_t_i, V_dash_supply_d_t_i, X_hs_out_min_C_d_t, L_star_CL_d_t_i, region)
+            df_output['X_hs_out_d_t'] = X_hs_out_d_t
+
+            # 式(14)(46)(48)の条件に合わせてTheta_NR_d_tを初期化
+            Theta_NR_d_t = np.zeros(24 * 365)
+
+            # (17)　冷房時の熱源機の出口における空気温度の最低値
+            Theta_hs_out_min_C_d_t = dc.get_Theta_hs_out_min_C_d_t(Theta_star_hs_in_d_t, Q_hs_max_CS_d_t, V_dash_supply_d_t_i)
+            df_output['Theta_hs_out_min_C_d_t'] = Theta_hs_out_min_C_d_t
+
+            # (16)　暖房時の熱源機の出口における空気温度の最高値
+            Theta_hs_out_max_H_d_t = dc.get_Theta_hs_out_max_H_d_t(Theta_star_hs_in_d_t, Q_hs_max_H_d_t, V_dash_supply_d_t_i)
+            df_output['Theta_hs_out_max_H_d_t'] = Theta_hs_out_max_H_d_t
+
+            # L_star_H_d_t_i，L_star_CS_d_t_iの暖冷房区画1～5を合算し0以上だった場合の順序で計算
+            # (14)　熱源機の出口における空気温度
+            Theta_hs_out_d_t = dc.get_Theta_hs_out_d_t(VAV, Theta_req_d_t_i, V_dash_supply_d_t_i,
+                                                    L_star_H_d_t_i, L_star_CS_d_t_i, region, Theta_NR_d_t,
+                                                    Theta_hs_out_max_H_d_t, Theta_hs_out_min_C_d_t)
+            df_output['Theta_hs_out_d_t'] = Theta_hs_out_d_t
+
+            # (43)　暖冷房区画𝑖の吹き出し風量
+            V_supply_d_t_i = dc.get_V_supply_d_t_i(L_star_H_d_t_i, L_star_CS_d_t_i, Theta_sur_d_t_i, l_duct_i, Theta_star_HBR_d_t,
+                                                            V_vent_g_i, V_dash_supply_d_t_i, VAV, region, Theta_hs_out_d_t)
+
+            df_output = df_output.assign(
+                V_supply_d_t_1 = V_supply_d_t_i[0],
+                V_supply_d_t_2 = V_supply_d_t_i[1],
+                V_supply_d_t_3 = V_supply_d_t_i[2],
+                V_supply_d_t_4 = V_supply_d_t_i[3],
+                V_supply_d_t_5 = V_supply_d_t_i[4]
+            )
+
+            # (41)　暖冷房区画𝑖の吹き出し温度
+            Theta_supply_d_t_i = dc.get_Thata_supply_d_t_i(Theta_sur_d_t_i, Theta_hs_out_d_t, Theta_star_HBR_d_t, l_duct_i,
+                                                           V_supply_d_t_i, L_star_H_d_t_i, L_star_CS_d_t_i, region)
+            if underfloor_air_conditioning_air_supply:
+                Theta_uf_d_t, Theta_g_surf_d_t = uf.calc_Theta(region, A_A, A_MR, A_OR, Q, YUCACO_r_A_ufvnt, underfloor_insulation, Theta_supply_d_t_i[0], Theta_ex_d_t,
+                                                        V_dash_supply_d_t_i[0], '', L_H_d_t_i, L_CS_d_t_i, R_g)
+                df_output['Theta_supply_d_t_1_bef'] = Theta_supply_d_t_i[0]
+                df_output['Theta_uf_d_t_1_sup'] = Theta_uf_d_t
+                if q_hs_rtd_H is not None:
+                    Theta_supply_d_t_i[0] = np.where(Theta_supply_d_t_i[0] > Theta_uf_d_t, 
+                                                     Theta_uf_d_t,
+                                                     Theta_supply_d_t_i[0])
+                elif q_hs_rtd_C is not None:
+                    Theta_supply_d_t_i[0] = np.where(Theta_supply_d_t_i[0] < Theta_uf_d_t, 
+                                                     Theta_uf_d_t,
+                                                     Theta_supply_d_t_i[0])
+
+                Theta_uf_d_t, Theta_g_surf_d_t = uf.calc_Theta(region, A_A, A_MR, A_OR, Q, YUCACO_r_A_ufvnt, underfloor_insulation, Theta_supply_d_t_i[1], Theta_ex_d_t,
+                                                        V_dash_supply_d_t_i[1], '', L_H_d_t_i, L_CS_d_t_i, R_g)
+                df_output['Theta_supply_d_t_2_bef'] = Theta_supply_d_t_i[1]
+                df_output['Theta_uf_d_t_2_sup'] = Theta_uf_d_t
+                if q_hs_rtd_H is not None:
+                    Theta_supply_d_t_i[1] = np.where(Theta_supply_d_t_i[1] > Theta_uf_d_t, 
+                                                     Theta_uf_d_t,
+                                                     Theta_supply_d_t_i[1])
+                elif q_hs_rtd_C is not None:
+                    Theta_supply_d_t_i[1] = np.where(Theta_supply_d_t_i[1] < Theta_uf_d_t, 
+                                                     Theta_uf_d_t,
+                                                     Theta_supply_d_t_i[1])
+
+            df_output = df_output.assign(
+                Theta_supply_d_t_1 = Theta_supply_d_t_i[0],
+                Theta_supply_d_t_2 = Theta_supply_d_t_i[1],
+                Theta_supply_d_t_3 = Theta_supply_d_t_i[2],
+                Theta_supply_d_t_4 = Theta_supply_d_t_i[3],
+                Theta_supply_d_t_5 = Theta_supply_d_t_i[4]
+            )
+
+            # (46)　暖冷房区画𝑖の実際の居室の室温
+            Theta_HBR_d_t_i[:, hour] = dc.get_Theta_HBR_d_t_i_2023(Theta_star_HBR_d_t, V_supply_d_t_i, Theta_supply_d_t_i, U_prt, A_prt_i, Q,
+                                                          A_HCZ_i, L_star_H_d_t_i, L_star_CS_d_t_i, region, hour)
+
+            # (48)　実際の非居室の室温
+            Theta_NR_d_t[hour] = dc.get_Theta_NR_d_t_2023(Theta_star_NR_d_t, Theta_star_HBR_d_t, Theta_HBR_d_t_i, A_NR, V_vent_l_NR_d_t,
+                                                V_dash_supply_d_t_i, V_supply_d_t_i, U_prt, A_prt_i, Q, hour)
+
     else:
-        raise Exception('設備機器の種類の入力が不正です。')
-    ####################################################################################################################
+        # (9)　熱取得を含む負荷バランス時の冷房顕熱負荷
+        L_star_CS_d_t_i = dc.get_L_star_CS_d_t_i(L_CS_d_t_i, Q_star_trs_prt_d_t_i, region)
+        df_output = df_output.assign(
+            L_star_CS_d_t_i_1 = L_star_CS_d_t_i[0],
+            L_star_CS_d_t_i_2 = L_star_CS_d_t_i[1],
+            L_star_CS_d_t_i_3 = L_star_CS_d_t_i[2],
+            L_star_CS_d_t_i_4 = L_star_CS_d_t_i[3],
+            L_star_CS_d_t_i_5 = L_star_CS_d_t_i[4]
+        )
 
-    # (20)　負荷バランス時の熱源機の入口における絶対湿度
-    X_star_hs_in_d_t = dc.get_X_star_hs_in_d_t(X_star_NR_d_t)
-    df_output['X_star_hs_in_d_t'] = X_star_hs_in_d_t
+        # (8)　熱損失を含む負荷バランス時の暖房負荷
+        L_star_H_d_t_i = dc.get_L_star_H_d_t_i(L_H_d_t_i, Q_star_trs_prt_d_t_i, region)
+        df_output = df_output.assign(
+            L_star_H_d_t_i_1 = L_star_H_d_t_i[0],
+            L_star_H_d_t_i_2 = L_star_H_d_t_i[1],
+            L_star_H_d_t_i_3 = L_star_H_d_t_i[2],
+            L_star_H_d_t_i_4 = L_star_H_d_t_i[3],
+            L_star_H_d_t_i_5 = L_star_H_d_t_i[4]
+        )
 
-    # (19)　負荷バランス時の熱源機の入口における空気温度
-    Theta_star_hs_in_d_t = dc.get_Theta_star_hs_in_d_t(Theta_star_NR_d_t)
-    df_output['Theta_star_hs_in_d_t'] = Theta_star_hs_in_d_t
+        ####################################################################################################################
+        if type == PROCESS_TYPE_1 or type == PROCESS_TYPE_3:
+            # (33)
+            L_star_CL_d_t = dc.get_L_star_CL_d_t(L_star_CL_d_t_i)
+            df_output['L_star_CL_d_t'] = L_star_CL_d_t
 
-    # (18)　熱源機の出口における空気温度の最低値
-    X_hs_out_min_C_d_t = dc.get_X_hs_out_min_C_d_t(X_star_hs_in_d_t, Q_hs_max_CL_d_t, V_dash_supply_d_t_i)
-    df_output['X_hs_out_min_C_d_t'] = X_hs_out_min_C_d_t
+            # (32)
+            L_star_CS_d_t = dc.get_L_star_CS_d_t(L_star_CS_d_t_i)
+            df_output['L_star_CS_d_t'] = L_star_CL_d_t
 
-    # (22)　熱源機の出口における要求絶対湿度
-    X_req_d_t_i = dc.get_X_req_d_t_i(X_star_HBR_d_t, L_star_CL_d_t_i, V_dash_supply_d_t_i, region)
-    df_output = df_output.assign(
-        X_req_d_t_1 = X_req_d_t_i[0],
-        X_req_d_t_2 = X_req_d_t_i[1],
-        X_req_d_t_3 = X_req_d_t_i[2],
-        X_req_d_t_4 = X_req_d_t_i[3],
-        X_req_d_t_5 = X_req_d_t_i[4]
-    )
+            # (31)
+            L_star_CL_max_d_t = dc.get_L_star_CL_max_d_t(L_star_CS_d_t)
+            df_output['L_star_CL_d_t'] = L_star_CL_d_t
 
-    # (21)　熱源機の出口における要求空気温度
-    Theta_req_d_t_i = dc.get_Theta_req_d_t_i(Theta_sur_d_t_i, Theta_star_HBR_d_t, V_dash_supply_d_t_i,
-                        L_star_H_d_t_i, L_star_CS_d_t_i, l_duct_i, region)
+            # (30)
+            L_star_dash_CL_d_t = dc.get_L_star_dash_CL_d_t(L_star_CL_max_d_t, L_star_CL_d_t)
+            df_output['L_star_dash_CL_d_t'] = L_star_dash_CL_d_t
 
-    if underfloor_air_conditioning_air_supply:
-        Theta_uf_d_t, Theta_g_surf_d_t = uf.calc_Theta(region, A_A, A_MR, A_OR, Q, YUCACO_r_A_ufvnt, underfloor_insulation, Theta_req_d_t_i[0], Theta_ex_d_t,
-                                                V_dash_supply_d_t_i[0], '', L_H_d_t_i, L_CS_d_t_i, R_g)
-        df_output['Theta_req_d_t_1_bef'] = Theta_req_d_t_i[0]
-        df_output['Theta_uf_d_t_1_req'] = Theta_uf_d_t
-        if q_hs_rtd_H is not None:
-            Theta_req_d_t_i[0] = np.where(Theta_req_d_t_i[0] > Theta_uf_d_t, 
-                                          Theta_req_d_t_i[0] + (Theta_req_d_t_i[0] - Theta_uf_d_t),
-                                          Theta_req_d_t_i[0])
+            # (29)
+            L_star_dash_C_d_t = dc.get_L_star_dash_C_d_t(L_star_CS_d_t, L_star_dash_CL_d_t)
+            df_output['L_star_dash_C_d_t'] = L_star_dash_C_d_t
+
+            # (28)
+            SHF_dash_d_t = dc.get_SHF_dash_d_t(L_star_CS_d_t, L_star_dash_C_d_t)
+            df_output['SHF_dash_d_t'] = SHF_dash_d_t
+
+            # (27)
+            Q_hs_max_C_d_t = dc.get_Q_hs_max_C_d_t(type, q_hs_rtd_C, input_C_af_C)
+            df_output['Q_hs_max_C_d_t'] = Q_hs_max_C_d_t
+
+            # (26)
+            Q_hs_max_CL_d_t = dc.get_Q_hs_max_CL_d_t(Q_hs_max_C_d_t, SHF_dash_d_t, L_star_dash_CL_d_t)
+            df_output['Q_hs_max_CL_d_t'] = Q_hs_max_CL_d_t
+
+            # (25)
+            Q_hs_max_CS_d_t = dc.get_Q_hs_max_CS_d_t(Q_hs_max_C_d_t, SHF_dash_d_t)
+            df_output['Q_hs_max_CS_d_t'] = Q_hs_max_CS_d_t
+
+            # (24)
+            C_df_H_d_t = dc.get_C_df_H_d_t(Theta_ex_d_t, h_ex_d_t)
+            df_output['C_df_H_d_t'] = C_df_H_d_t
+
+            # (23)
+            Q_hs_max_H_d_t = dc.get_Q_hs_max_H_d_t(type, q_hs_rtd_H, C_df_H_d_t, input_C_af_H)
+            df_output['Q_hs_max_H_d_t'] = Q_hs_max_H_d_t
+
+        elif type == PROCESS_TYPE_2 or type == PROCESS_TYPE_4:
+            # (24)　デフロストに関する暖房出力補正係数
+            C_df_H_d_t = dc.get_C_df_H_d_t(Theta_ex_d_t, h_ex_d_t)
+            df_output['C_df_H_d_t'] = C_df_H_d_t
+
+            # 最大暖房能力比
+            q_r_max_H = rac.get_q_r_max_H(q_max_H, q_rtd_H)
+            df_output3['q_r_max_H'] = [q_r_max_H]
+
+            # 最大暖房出力比
+            Q_r_max_H_d_t = rac.calc_Q_r_max_H_d_t(q_rtd_C, q_r_max_H, Theta_ex_d_t)
+            df_output['Q_r_max_H_d_t'] = Q_r_max_H_d_t
+
+            # 最大暖房出力
+            Q_max_H_d_t = rac.calc_Q_max_H_d_t(Q_r_max_H_d_t, q_rtd_H, Theta_ex_d_t, h_ex_d_t, input_C_af_H)
+            Q_hs_max_H_d_t = Q_max_H_d_t
+            df_output['Q_hs_max_H_d_t'] = Q_hs_max_H_d_t
+
+            # 最大冷房能力比
+            q_r_max_C = rac.get_q_r_max_C(q_max_C, q_rtd_C)
+            df_output3['q_r_max_C'] = [q_r_max_C]
+
+            # 最大冷房出力比
+            Q_r_max_C_d_t = rac.calc_Q_r_max_C_d_t(q_r_max_C, q_rtd_C, Theta_ex_d_t)
+            df_output['Q_r_max_C_d_t'] = Q_r_max_C_d_t
+
+            # 最大冷房出力
+            Q_max_C_d_t = rac.calc_Q_max_C_d_t(Q_r_max_C_d_t, q_rtd_C, input_C_af_C)
+            Q_hs_max_C_d_t = Q_max_C_d_t
+            df_output['Q_hs_max_C_d_t'] = Q_hs_max_C_d_t
+
+            # 冷房負荷最小顕熱比
+            SHF_L_min_c = rac.get_SHF_L_min_c()
+            df_output3['SHF_L_min_c'] = [SHF_L_min_c]
+
+            # 最大冷房潜熱負荷
+            L_max_CL_d_t = rac.get_L_max_CL_d_t(np.sum(L_CS_d_t_i, axis=0), SHF_L_min_c)
+            df_output['L_max_CL_d_t'] = L_max_CL_d_t
+
+            # 補正冷房潜熱負荷
+            L_dash_CL_d_t = rac.get_L_dash_CL_d_t(L_max_CL_d_t, np.sum(L_CL_d_t_i, axis=0))
+            L_dash_C_d_t = rac.get_L_dash_C_d_t(np.sum(L_CS_d_t_i, axis=0), L_dash_CL_d_t)
+            df_output['L_dash_CL_d_t'] = L_dash_CL_d_t
+            df_output['L_dash_C_d_t'] = L_dash_C_d_t
+
+            # 冷房負荷補正顕熱比
+            SHF_dash_d_t = rac.get_SHF_dash_d_t(np.sum(L_CS_d_t_i, axis=0), L_dash_C_d_t)
+            df_output['SHF_dash_d_t'] = SHF_dash_d_t
+
+            # 最大冷房顕熱出力, 最大冷房潜熱出力
+            Q_max_CS_d_t = rac.get_Q_max_CS_d_t(Q_max_C_d_t, SHF_dash_d_t)
+            Q_max_CL_d_t = rac.get_Q_max_CL_d_t(Q_max_C_d_t, SHF_dash_d_t, L_dash_CL_d_t)
+            Q_hs_max_C_d_t = Q_max_C_d_t
+            Q_hs_max_CL_d_t = Q_max_CL_d_t
+            Q_hs_max_CS_d_t = Q_max_CS_d_t
+            df_output['Q_hs_max_C_d_t'] = Q_hs_max_C_d_t
+            df_output['Q_hs_max_CL_d_t'] = Q_hs_max_CL_d_t
+            df_output['Q_hs_max_CS_d_t'] = Q_hs_max_CS_d_t
         else:
-            Theta_req_d_t_i[0] = np.where(Theta_req_d_t_i[0] < Theta_uf_d_t, 
-                                          Theta_req_d_t_i[0] + (Theta_req_d_t_i[0] - Theta_uf_d_t),
-                                          Theta_req_d_t_i[0])
+            raise Exception('設備機器の種類の入力が不正です。')
+        ####################################################################################################################
 
-        Theta_uf_d_t, Theta_g_surf_d_t = uf.calc_Theta(region, A_A, A_MR, A_OR, Q, YUCACO_r_A_ufvnt, underfloor_insulation, Theta_req_d_t_i[1], Theta_ex_d_t,
-                                                V_dash_supply_d_t_i[1], '', L_H_d_t_i, L_CS_d_t_i, R_g)
-        df_output['Theta_req_d_t_2_bef'] = Theta_req_d_t_i[1]
-        df_output['Theta_uf_d_t_2_req'] = Theta_uf_d_t
-        if q_hs_rtd_H is not None:
-            Theta_req_d_t_i[1] = np.where(Theta_req_d_t_i[1] > Theta_uf_d_t, 
-                                          Theta_req_d_t_i[1] + (Theta_req_d_t_i[1] - Theta_uf_d_t),
-                                          Theta_req_d_t_i[1])
-        else:
-            Theta_req_d_t_i[1] = np.where(Theta_req_d_t_i[1] < Theta_uf_d_t, 
-                                          Theta_req_d_t_i[1] + (Theta_req_d_t_i[1] - Theta_uf_d_t),
-                                          Theta_req_d_t_i[1])
+        # (20)　負荷バランス時の熱源機の入口における絶対湿度
+        X_star_hs_in_d_t = dc.get_X_star_hs_in_d_t(X_star_NR_d_t)
+        df_output['X_star_hs_in_d_t'] = X_star_hs_in_d_t
 
-    df_output = df_output.assign(
-        Theta_req_d_t_1 = Theta_req_d_t_i[0],
-        Theta_req_d_t_2 = Theta_req_d_t_i[1],
-        Theta_req_d_t_3 = Theta_req_d_t_i[2],
-        Theta_req_d_t_4 = Theta_req_d_t_i[3],
-        Theta_req_d_t_5 = Theta_req_d_t_i[4]
-    )
+        # (19)　負荷バランス時の熱源機の入口における空気温度
+        Theta_star_hs_in_d_t = dc.get_Theta_star_hs_in_d_t(Theta_star_NR_d_t)
+        df_output['Theta_star_hs_in_d_t'] = Theta_star_hs_in_d_t
 
-    # (15)　熱源機の出口における絶対湿度
-    X_hs_out_d_t = dc.get_X_hs_out_d_t(X_NR_d_t, X_req_d_t_i, V_dash_supply_d_t_i, X_hs_out_min_C_d_t, L_star_CL_d_t_i, region)
-    df_output['X_hs_out_d_t'] = X_hs_out_d_t
+        # (18)　熱源機の出口における空気温度の最低値
+        X_hs_out_min_C_d_t = dc.get_X_hs_out_min_C_d_t(X_star_hs_in_d_t, Q_hs_max_CL_d_t, V_dash_supply_d_t_i)
+        df_output['X_hs_out_min_C_d_t'] = X_hs_out_min_C_d_t
 
-    # 式(14)(46)(48)の条件に合わせてTheta_NR_d_tを初期化
-    Theta_NR_d_t = np.zeros(24 * 365)
+        # (22)　熱源機の出口における要求絶対湿度
+        X_req_d_t_i = dc.get_X_req_d_t_i(X_star_HBR_d_t, L_star_CL_d_t_i, V_dash_supply_d_t_i, region)
+        df_output = df_output.assign(
+            X_req_d_t_1 = X_req_d_t_i[0],
+            X_req_d_t_2 = X_req_d_t_i[1],
+            X_req_d_t_3 = X_req_d_t_i[2],
+            X_req_d_t_4 = X_req_d_t_i[3],
+            X_req_d_t_5 = X_req_d_t_i[4]
+        )
 
-    # (17)　冷房時の熱源機の出口における空気温度の最低値
-    Theta_hs_out_min_C_d_t = dc.get_Theta_hs_out_min_C_d_t(Theta_star_hs_in_d_t, Q_hs_max_CS_d_t, V_dash_supply_d_t_i)
-    df_output['Theta_hs_out_min_C_d_t'] = Theta_hs_out_min_C_d_t
+        # (21)　熱源機の出口における要求空気温度
+        Theta_req_d_t_i = dc.get_Theta_req_d_t_i(Theta_sur_d_t_i, Theta_star_HBR_d_t, V_dash_supply_d_t_i,
+                            L_star_H_d_t_i, L_star_CS_d_t_i, l_duct_i, region)
 
-    # (16)　暖房時の熱源機の出口における空気温度の最高値
-    Theta_hs_out_max_H_d_t = dc.get_Theta_hs_out_max_H_d_t(Theta_star_hs_in_d_t, Q_hs_max_H_d_t, V_dash_supply_d_t_i)
-    df_output['Theta_hs_out_max_H_d_t'] = Theta_hs_out_max_H_d_t
+        if underfloor_air_conditioning_air_supply:
+            Theta_uf_d_t, Theta_g_surf_d_t = uf.calc_Theta(region, A_A, A_MR, A_OR, Q, YUCACO_r_A_ufvnt, underfloor_insulation, Theta_req_d_t_i[0], Theta_ex_d_t,
+                                                    V_dash_supply_d_t_i[0], '', L_H_d_t_i, L_CS_d_t_i, R_g)
+            df_output['Theta_req_d_t_1_bef'] = Theta_req_d_t_i[0]
+            df_output['Theta_uf_d_t_1_req'] = Theta_uf_d_t
+            if q_hs_rtd_H is not None:
+                Theta_req_d_t_i[0] = np.where(Theta_req_d_t_i[0] > Theta_uf_d_t, 
+                                              Theta_req_d_t_i[0] + (Theta_req_d_t_i[0] - Theta_uf_d_t),
+                                              Theta_req_d_t_i[0])
+            else:
+                Theta_req_d_t_i[0] = np.where(Theta_req_d_t_i[0] < Theta_uf_d_t, 
+                                              Theta_req_d_t_i[0] + (Theta_req_d_t_i[0] - Theta_uf_d_t),
+                                              Theta_req_d_t_i[0])
 
-    # L_star_H_d_t_i，L_star_CS_d_t_iの暖冷房区画1～5を合算し0以上だった場合の順序で計算
-    # (14)　熱源機の出口における空気温度
-    Theta_hs_out_d_t = dc.get_Theta_hs_out_d_t(VAV, Theta_req_d_t_i, V_dash_supply_d_t_i,
-                                            L_star_H_d_t_i, L_star_CS_d_t_i, region, Theta_NR_d_t,
-                                            Theta_hs_out_max_H_d_t, Theta_hs_out_min_C_d_t)
-    df_output['Theta_hs_out_d_t'] = Theta_hs_out_d_t
+            Theta_uf_d_t, Theta_g_surf_d_t = uf.calc_Theta(region, A_A, A_MR, A_OR, Q, YUCACO_r_A_ufvnt, underfloor_insulation, Theta_req_d_t_i[1], Theta_ex_d_t,
+                                                    V_dash_supply_d_t_i[1], '', L_H_d_t_i, L_CS_d_t_i, R_g)
+            df_output['Theta_req_d_t_2_bef'] = Theta_req_d_t_i[1]
+            df_output['Theta_uf_d_t_2_req'] = Theta_uf_d_t
+            if q_hs_rtd_H is not None:
+                Theta_req_d_t_i[1] = np.where(Theta_req_d_t_i[1] > Theta_uf_d_t, 
+                                              Theta_req_d_t_i[1] + (Theta_req_d_t_i[1] - Theta_uf_d_t),
+                                              Theta_req_d_t_i[1])
+            else:
+                Theta_req_d_t_i[1] = np.where(Theta_req_d_t_i[1] < Theta_uf_d_t, 
+                                              Theta_req_d_t_i[1] + (Theta_req_d_t_i[1] - Theta_uf_d_t),
+                                              Theta_req_d_t_i[1])
 
-    # (43)　暖冷房区画𝑖の吹き出し風量
-    V_supply_d_t_i = dc.get_V_supply_d_t_i(L_star_H_d_t_i, L_star_CS_d_t_i, Theta_sur_d_t_i, l_duct_i, Theta_star_HBR_d_t,
-                                                    V_vent_g_i, V_dash_supply_d_t_i, VAV, region, Theta_hs_out_d_t)
+        df_output = df_output.assign(
+            Theta_req_d_t_1 = Theta_req_d_t_i[0],
+            Theta_req_d_t_2 = Theta_req_d_t_i[1],
+            Theta_req_d_t_3 = Theta_req_d_t_i[2],
+            Theta_req_d_t_4 = Theta_req_d_t_i[3],
+            Theta_req_d_t_5 = Theta_req_d_t_i[4]
+        )
 
-    df_output = df_output.assign(
-        V_supply_d_t_1 = V_supply_d_t_i[0],
-        V_supply_d_t_2 = V_supply_d_t_i[1],
-        V_supply_d_t_3 = V_supply_d_t_i[2],
-        V_supply_d_t_4 = V_supply_d_t_i[3],
-        V_supply_d_t_5 = V_supply_d_t_i[4]
-    )
+        # (15)　熱源機の出口における絶対湿度
+        X_hs_out_d_t = dc.get_X_hs_out_d_t(X_NR_d_t, X_req_d_t_i, V_dash_supply_d_t_i, X_hs_out_min_C_d_t, L_star_CL_d_t_i, region)
+        df_output['X_hs_out_d_t'] = X_hs_out_d_t
 
-    # (41)　暖冷房区画𝑖の吹き出し温度
-    Theta_supply_d_t_i = dc.get_Thata_supply_d_t_i(Theta_sur_d_t_i, Theta_hs_out_d_t, Theta_star_HBR_d_t, l_duct_i,
-                                                   V_supply_d_t_i, L_star_H_d_t_i, L_star_CS_d_t_i, region)
-    if underfloor_air_conditioning_air_supply:
-        Theta_uf_d_t, Theta_g_surf_d_t = uf.calc_Theta(region, A_A, A_MR, A_OR, Q, YUCACO_r_A_ufvnt, underfloor_insulation, Theta_supply_d_t_i[0], Theta_ex_d_t,
-                                                V_dash_supply_d_t_i[0], '', L_H_d_t_i, L_CS_d_t_i, R_g)
-        df_output['Theta_supply_d_t_1_bef'] = Theta_supply_d_t_i[0]
-        df_output['Theta_uf_d_t_1_sup'] = Theta_uf_d_t
-        if q_hs_rtd_H is not None:
-            Theta_supply_d_t_i[0] = np.where(Theta_supply_d_t_i[0] > Theta_uf_d_t, 
-                                             Theta_uf_d_t,
-                                             Theta_supply_d_t_i[0])
-        elif q_hs_rtd_C is not None:
-            Theta_supply_d_t_i[0] = np.where(Theta_supply_d_t_i[0] < Theta_uf_d_t, 
-                                             Theta_uf_d_t,
-                                             Theta_supply_d_t_i[0])
+        # 式(14)(46)(48)の条件に合わせてTheta_NR_d_tを初期化
+        Theta_NR_d_t = np.zeros(24 * 365)
 
-        Theta_uf_d_t, Theta_g_surf_d_t = uf.calc_Theta(region, A_A, A_MR, A_OR, Q, YUCACO_r_A_ufvnt, underfloor_insulation, Theta_supply_d_t_i[1], Theta_ex_d_t,
-                                                V_dash_supply_d_t_i[1], '', L_H_d_t_i, L_CS_d_t_i, R_g)
-        df_output['Theta_supply_d_t_2_bef'] = Theta_supply_d_t_i[1]
-        df_output['Theta_uf_d_t_2_sup'] = Theta_uf_d_t
-        if q_hs_rtd_H is not None:
-            Theta_supply_d_t_i[1] = np.where(Theta_supply_d_t_i[1] > Theta_uf_d_t, 
-                                             Theta_uf_d_t,
-                                             Theta_supply_d_t_i[1])
-        elif q_hs_rtd_C is not None:
-            Theta_supply_d_t_i[1] = np.where(Theta_supply_d_t_i[1] < Theta_uf_d_t, 
-                                             Theta_uf_d_t,
-                                             Theta_supply_d_t_i[1])
+        # (17)　冷房時の熱源機の出口における空気温度の最低値
+        Theta_hs_out_min_C_d_t = dc.get_Theta_hs_out_min_C_d_t(Theta_star_hs_in_d_t, Q_hs_max_CS_d_t, V_dash_supply_d_t_i)
+        df_output['Theta_hs_out_min_C_d_t'] = Theta_hs_out_min_C_d_t
 
-    df_output = df_output.assign(
-        Theta_supply_d_t_1 = Theta_supply_d_t_i[0],
-        Theta_supply_d_t_2 = Theta_supply_d_t_i[1],
-        Theta_supply_d_t_3 = Theta_supply_d_t_i[2],
-        Theta_supply_d_t_4 = Theta_supply_d_t_i[3],
-        Theta_supply_d_t_5 = Theta_supply_d_t_i[4]
-    )
+        # (16)　暖房時の熱源機の出口における空気温度の最高値
+        Theta_hs_out_max_H_d_t = dc.get_Theta_hs_out_max_H_d_t(Theta_star_hs_in_d_t, Q_hs_max_H_d_t, V_dash_supply_d_t_i)
+        df_output['Theta_hs_out_max_H_d_t'] = Theta_hs_out_max_H_d_t
 
-    # (46)　暖冷房区画𝑖の実際の居室の室温
-    Theta_HBR_d_t_i = dc.get_Theta_HBR_d_t_i(Theta_star_HBR_d_t, V_supply_d_t_i, Theta_supply_d_t_i, U_prt, A_prt_i, Q,
-                                             A_HCZ_i, L_star_H_d_t_i, L_star_CS_d_t_i, region)
+        # L_star_H_d_t_i，L_star_CS_d_t_iの暖冷房区画1～5を合算し0以上だった場合の順序で計算
+        # (14)　熱源機の出口における空気温度
+        Theta_hs_out_d_t = dc.get_Theta_hs_out_d_t(VAV, Theta_req_d_t_i, V_dash_supply_d_t_i,
+                                                L_star_H_d_t_i, L_star_CS_d_t_i, region, Theta_NR_d_t,
+                                                Theta_hs_out_max_H_d_t, Theta_hs_out_min_C_d_t)
+        df_output['Theta_hs_out_d_t'] = Theta_hs_out_d_t
 
-    # (48)　実際の非居室の室温
-    Theta_NR_d_t = dc.get_Theta_NR_d_t(Theta_star_NR_d_t, Theta_star_HBR_d_t, Theta_HBR_d_t_i, A_NR, V_vent_l_NR_d_t,
-                                        V_dash_supply_d_t_i, V_supply_d_t_i, U_prt, A_prt_i, Q)
+        # (43)　暖冷房区画𝑖の吹き出し風量
+        V_supply_d_t_i = dc.get_V_supply_d_t_i(L_star_H_d_t_i, L_star_CS_d_t_i, Theta_sur_d_t_i, l_duct_i, Theta_star_HBR_d_t,
+                                                        V_vent_g_i, V_dash_supply_d_t_i, VAV, region, Theta_hs_out_d_t)
+
+        df_output = df_output.assign(
+            V_supply_d_t_1 = V_supply_d_t_i[0],
+            V_supply_d_t_2 = V_supply_d_t_i[1],
+            V_supply_d_t_3 = V_supply_d_t_i[2],
+            V_supply_d_t_4 = V_supply_d_t_i[3],
+            V_supply_d_t_5 = V_supply_d_t_i[4]
+        )
+
+        # (41)　暖冷房区画𝑖の吹き出し温度
+        Theta_supply_d_t_i = dc.get_Thata_supply_d_t_i(Theta_sur_d_t_i, Theta_hs_out_d_t, Theta_star_HBR_d_t, l_duct_i,
+                                                       V_supply_d_t_i, L_star_H_d_t_i, L_star_CS_d_t_i, region)
+        if underfloor_air_conditioning_air_supply:
+            Theta_uf_d_t, Theta_g_surf_d_t = uf.calc_Theta(region, A_A, A_MR, A_OR, Q, YUCACO_r_A_ufvnt, underfloor_insulation, Theta_supply_d_t_i[0], Theta_ex_d_t,
+                                                    V_dash_supply_d_t_i[0], '', L_H_d_t_i, L_CS_d_t_i, R_g)
+            df_output['Theta_supply_d_t_1_bef'] = Theta_supply_d_t_i[0]
+            df_output['Theta_uf_d_t_1_sup'] = Theta_uf_d_t
+            if q_hs_rtd_H is not None:
+                Theta_supply_d_t_i[0] = np.where(Theta_supply_d_t_i[0] > Theta_uf_d_t, 
+                                                 Theta_uf_d_t,
+                                                 Theta_supply_d_t_i[0])
+            elif q_hs_rtd_C is not None:
+                Theta_supply_d_t_i[0] = np.where(Theta_supply_d_t_i[0] < Theta_uf_d_t, 
+                                                 Theta_uf_d_t,
+                                                 Theta_supply_d_t_i[0])
+
+            Theta_uf_d_t, Theta_g_surf_d_t = uf.calc_Theta(region, A_A, A_MR, A_OR, Q, YUCACO_r_A_ufvnt, underfloor_insulation, Theta_supply_d_t_i[1], Theta_ex_d_t,
+                                                    V_dash_supply_d_t_i[1], '', L_H_d_t_i, L_CS_d_t_i, R_g)
+            df_output['Theta_supply_d_t_2_bef'] = Theta_supply_d_t_i[1]
+            df_output['Theta_uf_d_t_2_sup'] = Theta_uf_d_t
+            if q_hs_rtd_H is not None:
+                Theta_supply_d_t_i[1] = np.where(Theta_supply_d_t_i[1] > Theta_uf_d_t, 
+                                                 Theta_uf_d_t,
+                                                 Theta_supply_d_t_i[1])
+            elif q_hs_rtd_C is not None:
+                Theta_supply_d_t_i[1] = np.where(Theta_supply_d_t_i[1] < Theta_uf_d_t, 
+                                                 Theta_uf_d_t,
+                                                 Theta_supply_d_t_i[1])
+
+        df_output = df_output.assign(
+            Theta_supply_d_t_1 = Theta_supply_d_t_i[0],
+            Theta_supply_d_t_2 = Theta_supply_d_t_i[1],
+            Theta_supply_d_t_3 = Theta_supply_d_t_i[2],
+            Theta_supply_d_t_4 = Theta_supply_d_t_i[3],
+            Theta_supply_d_t_5 = Theta_supply_d_t_i[4]
+        )
+
+        # (46)　暖冷房区画𝑖の実際の居室の室温
+        Theta_HBR_d_t_i = dc.get_Theta_HBR_d_t_i(Theta_star_HBR_d_t, V_supply_d_t_i, Theta_supply_d_t_i, U_prt, A_prt_i, Q,
+                                                 A_HCZ_i, L_star_H_d_t_i, L_star_CS_d_t_i, region)
+
+        # (48)　実際の非居室の室温
+        Theta_NR_d_t = dc.get_Theta_NR_d_t(Theta_star_NR_d_t, Theta_star_HBR_d_t, Theta_HBR_d_t_i, A_NR, V_vent_l_NR_d_t,
+                                            V_dash_supply_d_t_i, V_supply_d_t_i, U_prt, A_prt_i, Q)
 
     df_output = df_output.assign(
         Theta_HBR_d_t_1 = Theta_HBR_d_t_i[0],

@@ -1845,6 +1845,57 @@ def get_Theta_HBR_d_t_i(Theta_star_HBR_d_t, V_supply_d_t_i, Theta_supply_d_t_i, 
 
     return Theta_HBR_d_t_i
 
+def get_Theta_HBR_d_t_i_2023(Theta_star_HBR_d_t, V_supply_d_t_i, Theta_supply_d_t_i, U_prt, A_prt_i, Q, A_HCZ_i, L_star_H_d_t_i, L_star_CS_d_t_i, region, hour):
+    """(46-1)(46-2)(46-3)
+
+    Args:
+      Theta_star_HBR_d_t: 日付dの時刻tにおける負荷バランス時の居室の室温（℃）
+      V_supply_d_t_i: 日付dの時刻tにおける暖冷房区画iの吹き出し風量（m3/h）
+      Theta_supply_d_t_i: 日付dの時刻tにおける負荷バランス時の居室の室温（℃）
+      U_prt: 間仕切りの熱貫流率（W/(m2・K)）
+      A_prt_i: 暖冷房区画iから見た非居室の間仕切りの面積（m2）
+      Q: 当該住戸の熱損失係数（W/(m2・K)）
+      A_HCZ_i: 暖冷房区画iの床面積（m2）
+      L_star_H_d_t_i: 日付dの時刻tにおける暖冷房区画iの1時間当たりの間仕切りの熱取得を含む実際の暖房負荷（MJ/h）
+      L_star_CS_d_t_i: 日付dの時刻tにおける暖冷房区画iの1時間当たりの間仕切りの熱取得を含む実際の冷房顕熱負荷（MJ/h）
+      region: 地域区分
+      hour: 計算対象の時刻
+
+    Returns:
+      (日付dの時刻tにおける)暖冷房区画iの実際の居室の室温[℃]
+
+    """
+    H, C, M = get_season_array_d_t(region)
+    c_p_air = get_c_p_air()
+    rho_air = get_rho_air()
+
+    Theta_HBR_d_t_i = np.zeros(5)
+    # A_HCZ_i = np.reshape(A_HCZ_i, (5, 0))
+
+    # 暖房期 (46-1)
+    if H[hour]:
+      Theta_HBR_d_t_i = Theta_star_HBR_d_t[hour] \
+                        + (c_p_air * rho_air * V_supply_d_t_i[:, hour] * (Theta_supply_d_t_i[:, hour] - Theta_star_HBR_d_t[hour]) - L_star_H_d_t_i[:, hour] * 10 ** 6) \
+                        / (c_p_air * rho_air * V_supply_d_t_i[:, hour] + (U_prt * A_prt_i + Q * A_HCZ_i) * 3600)
+
+      # 暖冷房区画iの実際の居室の室温θ_(HBR,d,t,i)は、暖房期において負荷バランス時の居室の室温θ_(HBR,d,t)^*を下回る場合、
+      # 負荷バランス時の居室の室温θ_(HBR,d,t)^*に等しい
+      Theta_HBR_d_t_i = np.clip(Theta_HBR_d_t_i, Theta_star_HBR_d_t[hour], None)
+
+    elif C[hour]:
+      # 冷房期 (46-2)
+      Theta_HBR_d_t_i = Theta_star_HBR_d_t[hour] \
+                        - (c_p_air * rho_air * V_supply_d_t_i[:, hour] * (Theta_star_HBR_d_t[hour] - Theta_supply_d_t_i[:, hour]) - L_star_CS_d_t_i[:, hour] * 10 ** 6) \
+                        / (c_p_air * rho_air * V_supply_d_t_i[:, hour] + (U_prt * A_prt_i + Q * A_HCZ_i) * 3600)
+
+      # 冷房期において負荷バランス時の居室の室温θ_(HBR,d,t)^*を上回る場合、負荷バランス時の居室の室温θ_(HBR,d,t)^*に等しい
+      Theta_HBR_d_t_i = np.clip(Theta_HBR_d_t_i, None, Theta_star_HBR_d_t[hour])
+
+    elif M[hour]:
+      # 中間期 (46-3)
+      Theta_HBR_d_t_i = Theta_star_HBR_d_t[hour]
+
+    return Theta_HBR_d_t_i
 
 def get_X_HBR_d_t_i(X_star_HBR_d_t):
     """(47)
@@ -1902,6 +1953,44 @@ def get_Theta_NR_d_t(Theta_star_NR_d_t, Theta_star_HBR_d_t, Theta_HBR_d_t_i, A_N
 
     return Theta_NR_d_t
 
+def get_Theta_NR_d_t_2023(Theta_star_NR_d_t, Theta_star_HBR_d_t, Theta_HBR_d_t_i, A_NR, V_vent_l_NR_d_t, V_dash_supply_d_t_i, V_supply_d_t_i, U_prt, A_prt_i, Q, hour):
+    """(48a)(48b)(48c)(48d)
+
+    Args:
+      Theta_star_NR_d_t: 日付dの時刻tにおける実際の非居室の室温（℃）
+      Theta_star_HBR_d_t: 日付dの時刻tにおける負荷バランス時の居室の室温（℃）
+      Theta_HBR_d_t_i: 日付dの時刻tにおける暖冷房区画iの実際の居室の室温（℃）
+      A_NR: 非居室の床面積（m2）
+      V_vent_l_NR_d_t: 日付dの時刻tにおける非居室の局所換気量（m3/h）
+      V_dash_supply_d_t_i: 日付dの時刻tにおける暖冷房区画iのVAV調整前の吹き出し風量（m3/h）
+      V_supply_d_t_i: 日付dの時刻tにおける暖冷房区画iの吹き出し風量（m3/h）
+      U_prt: 間仕切りの熱貫流率（W/(m2・K)）
+      A_prt_i: 暖冷房区画iから見た非居室の間仕切りの面積（m2）
+      Q: 当該住戸の熱損失係数（W/(m2・K)）
+      hour: 計算対象の時刻
+
+    Returns:
+      日付dの時刻tにおける実際の非居室の室温
+
+    """
+    c_p_air = get_c_p_air()
+    rho_air = get_rho_air()
+
+    # (48d)
+    k_dash_d_t_i = c_p_air * rho_air * (V_dash_supply_d_t_i[:, hour] / 3600) + U_prt * A_prt_i
+
+    # (48c)
+    k_prt_d_t_i = c_p_air * rho_air * (V_supply_d_t_i[:, hour] / 3600) + U_prt * A_prt_i
+
+    # (48b)
+    k_evp_d_t = (Q - 0.35 * 0.5 * 2.4) * A_NR + c_p_air * rho_air * (V_vent_l_NR_d_t[hour] / 3600)
+
+    # (48a)
+    Theta_NR_d_t = Theta_star_NR_d_t[hour] + (-1 * np.sum(k_dash_d_t_i * (Theta_star_HBR_d_t[hour] - Theta_star_NR_d_t[hour]), axis=0) + \
+                   np.sum(k_prt_d_t_i * (Theta_HBR_d_t_i[:, hour] - Theta_star_NR_d_t[hour]), axis=0)) / \
+                   (k_evp_d_t + np.sum(k_prt_d_t_i, axis=0))
+
+    return Theta_NR_d_t
 
 def get_X_NR_d_t(X_star_NR_d_t):
     """(49)
