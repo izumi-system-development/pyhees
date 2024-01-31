@@ -730,9 +730,9 @@ def get_L_star_CS_i_2023(L_CS_d_t_i, Q_star_trs_prt_d_t_i, region, A_HCZ_i, A_HC
     A_HCZ_R_i = A_HCZ_R_i.reshape(-1,1)
 
     if 0 < t:
-        tmparr = get_C_BR_i(A_HCZ_i, A_HCZ_R_i)
-        tmpmax = np.max(Theta_star_HBR_d_t[t-1] - Theta_HBR_d_t_i[:, t-1:t], 0)  # 5x1
-        carry_over = -1 * tmparr * tmpmax
+        cbri = get_C_BR_i(A_HCZ_i, A_HCZ_R_i)
+        arr_theta = np.max(Theta_star_HBR_d_t[t-1] - Theta_HBR_d_t_i[:, t-1:t], 0)  # 5x1
+        carry_over = -1 * cbri * arr_theta
     else:
         carry_over = np.zeros((5, 1))
 
@@ -1917,7 +1917,6 @@ def get_Theta_HBR_d_t_i(Theta_star_HBR_d_t, V_supply_d_t_i, Theta_supply_d_t_i, 
 
 def get_C_BR_i(A_HCZ_i, A_HCZ_R_i):
     """区画i毎の居室の熱容量[J/K]"""
-    # TODO: ここの変更聞いてますか？チェックすべし
     Alpha_HCZ_i = np.array([
         [constants.Alpha_HCZ_i[0]],
         [constants.Alpha_HCZ_i[1]],
@@ -2052,7 +2051,6 @@ def get_Theta_NR_d_t(Theta_star_NR_d_t, Theta_star_HBR_d_t, Theta_HBR_d_t_i, A_N
 def get_C_NR_i(A_NR) -> float:
     """区画i毎の非居室の熱容量[J/K]"""
     C_NR_R_i = 12.6 * 1000 * constants.A_NR_R * 2.4 + constants.Alpha_NR_i * 1000  # 5x1
-    # TODO: ここの変更が聞いているかチェックすべし
     return A_NR / constants.A_NR_R * C_NR_R_i
 
 def get_Theta_NR_2023(Theta_star_NR_d_t, Theta_star_HBR_d_t, Theta_HBR_d_t_i, A_NR, V_vent_l_NR_d_t, V_dash_supply_d_t_i, V_supply_d_t_i, U_prt, A_prt_i, Q, Theta_NR_d_t, t: int):
