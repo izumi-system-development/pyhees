@@ -45,7 +45,11 @@ from pyhees.section4_3 import \
     get_C_af_H, \
     get_C_af_C
 
+from jjjexperiment.constants import PROCESS_TYPE_3
 import jjjexperiment.constants as constants
+
+from jjjexperiment.logger import LimitedLoggerAdapter as _logger  # デバッグ用ロガー
+from jjjexperiment.options import *
 
 # 未処理負荷と機器の計算に必要な変数を取得
 def calc_Q_UT_A(A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs_dsgn_H, V_hs_dsgn_C, Q,
@@ -290,7 +294,8 @@ def calc_Q_UT_A(A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs
 
     # (43)
     V_supply_d_t_i = get_V_supply_d_t_i(L_star_H_d_t_i, L_star_CS_d_t_i, Theta_sur_d_t_i, l_duct_i, Theta_star_HBR_d_t,
-                                                    V_vent_g_i, V_dash_supply_d_t_i, VAV, region, Theta_hs_out_d_t)
+                                        V_vent_g_i, V_dash_supply_d_t_i, VAV, region, Theta_hs_out_d_t)
+    V_supply_d_t_i = cap_V_supply_d_t_i(V_supply_d_t_i, VAV, )
 
     # (41)
     Theta_supply_d_t_i = get_Thata_supply_d_t_i(Theta_sur_d_t_i, Theta_hs_out_d_t, Theta_star_HBR_d_t, l_duct_i,
@@ -1709,6 +1714,60 @@ def get_X_supply_d_t_i(X_star_HBR_d_t, X_hs_out_d_t, L_star_CL_d_t_i, region):
 # 10.3 吹き出し風量
 # ============================================================================
 
+def cap_V_supply_d_t_i(V_supply_d_t_i, V_dash_supply_d_t_i, V_vent_g_i, region, V_hs_dsgn_H, V_hs_dsgn_C):
+  _logger.NDdebug("V_supply_d_t_i_キャップ前:", V_supply_d_t_i[0])
+  _logger.NDdebug("V_dash_supply_d_t_i:", V_dash_supply_d_t_i[0])
+
+  V_vent_g_i = np.reshape(V_vent_g_i, (5, 1))
+  V_vent_g_i = V_vent_g_i.repeat(24 * 365, axis=1)
+
+  H, C, M = get_season_array_d_t(region)
+
+  # 吹き出し風量V_(supply,d,t,i)は、VAV調整前の吹き出し風量V_(supply,d,t,i)^'を上回る場合はVAV調整前の \
+  # 吹き出し風量V_(supply,d,t,i)^'に等しいとし、全般換気量V_(vent,g,i)を下回る場合は全般換気量V_(vent,g,i)に等しいとする
+  if constants.change_V_supply_d_t_i_max == Vサプライの上限キャップ.外さない.value:
+    V_supply_d_t_i = np.clip(V_supply_d_t_i, V_vent_g_i, V_dash_supply_d_t_i)
+
+  elif constants.change_V_supply_d_t_i_max == Vサプライの上限キャップ.全体でキャップ.value:
+    V_supply_d_t_i = np.clip(V_supply_d_t_i, V_vent_g_i, None)
+    V_supply_d_t = np.sum(V_supply_d_t_i, axis=0)  # 1d-shape(5, )
+
+    # キャップとしての設計風量
+    V_hs_dsgn_C = V_hs_dsgn_C if V_hs_dsgn_C is not None else float('inf')
+    V_hs_dsgn_H = V_hs_dsgn_H if V_hs_dsgn_H is not None else float('inf')
+
+    overflow_mask_H = np.logical_and(H, V_supply_d_t > V_hs_dsgn_H)
+    overflow_mask_C = np.logical_and(C, V_supply_d_t > V_hs_dsgn_C)
+
+    ratios_H = np.divide(
+      np.full(len(V_supply_d_t), V_hs_dsgn_H, dtype=float),
+      V_supply_d_t,
+      where=overflow_mask_H, out=np.ones_like(V_supply_d_t, dtype=float))
+    ratios_C = np.divide(
+      np.full(len(V_supply_d_t), V_hs_dsgn_C, dtype=float),
+      V_supply_d_t,
+      where=overflow_mask_C, out=np.ones_like(V_supply_d_t, dtype=float))
+
+    # CHECK: 小数点以下何桁にするか、しないとちょいオーバーする
+    ratios_H = np.floor(ratios_H * 1000) / 1000
+    ratios_C = np.floor(ratios_C * 1000) / 1000
+    new_V_supply_d_t_i = V_supply_d_t_i * ratios_H[np.newaxis, :] * ratios_C[np.newaxis, :]
+
+    check = np.sum(new_V_supply_d_t_i, axis=0)
+    assert all(check[H] <= V_hs_dsgn_H)
+    assert all(check[C] <= V_hs_dsgn_C)
+
+  elif constants.change_V_supply_d_t_i_max == Vサプライの上限キャップ.ピンポイントでキャップ.value:
+    # TODO: 実装する
+    V_supply_d_t_i = np.clip(V_supply_d_t_i, V_vent_g_i, V_dash_supply_d_t_i)
+
+  else:
+    raise ValueError("change_V_supply_d_t_i is out of range")
+
+  _logger.NDdebug("V_supply_d_t_i_キャップ後:", V_supply_d_t_i[0])
+
+  return new_V_supply_d_t_i
+
 def get_V_supply_d_t_i(L_star_H_d_t_i, L_star_CS_d_t_i, Theta_sur_d_t_i, l_duct_i, Theta_star_HBR_d_t, V_vent_g_i,
                        V_dash_supply_d_t_i, VAV, region, Theta_hs_out_d_t):
     """(43-1)(43-2)(43-3)(43-4)(43-5)
@@ -1782,13 +1841,6 @@ def get_V_supply_d_t_i(L_star_H_d_t_i, L_star_CS_d_t_i, Theta_sur_d_t_i, l_duct_
         V_supply_d_t_i[:, M] = V_vent_g_i[:, M]
     else:
         raise ValueError(VAV)
-
-    # 吹き出し風量V_(supply,d,t,i)は、VAV調整前の吹き出し風量V_(supply,d,t,i)^'を上回る場合はVAV調整前の \
-    # 吹き出し風量V_(supply,d,t,i)^'に等しいとし、全般換気量V_(vent,g,i)を下回る場合は全般換気量V_(vent,g,i)に等しいとする
-    if constants.change_V_supply_d_t_i_max == 2:
-      V_supply_d_t_i = np.clip(V_supply_d_t_i, V_vent_g_i, None)
-    else:
-      V_supply_d_t_i = np.clip(V_supply_d_t_i, V_vent_g_i, V_dash_supply_d_t_i)
 
     return V_supply_d_t_i
 

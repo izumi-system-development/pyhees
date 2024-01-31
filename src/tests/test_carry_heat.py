@@ -35,6 +35,27 @@ class Test_計算式_面積バランス:
 
 class Test_配列操作の確認:
 
+    def test_caplogic(self):
+        arr_d_t_i = np.array([
+            [3, 4, 5, 6, 7],
+            [4, 3, 3, 6, 2],
+            [3, 2, 5, 6, 1],
+        ], dtype=float)
+        arr_d_t = np.sum(arr_d_t_i, axis=0)  # 1d-shape(5, )
+        mask_overflow = arr_d_t > 10  # 1d-shape(5, )
+        ratios = np.divide(
+            np.full(len(arr_d_t), 10, dtype=float),
+            arr_d_t,
+            where=mask_overflow, out=np.ones_like(arr_d_t, dtype=float))
+        new_arr_d_t_i = np.multiply(
+            arr_d_t_i,
+            ratios[np.newaxis, :],
+            where=mask_overflow, out=arr_d_t_i)
+
+        # check
+        check = np.sum(new_arr_d_t_i, axis=0)
+        assert all(check <= 10)
+
     def test_LEVEL1(self):
         arr = np.array([
             [1, 2, 3, 4, 5],

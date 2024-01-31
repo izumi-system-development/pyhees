@@ -29,7 +29,7 @@ def version_info() -> str:
     """
     # NOTE: subprocessモジュールによるコミット履歴からの生成は \
     # ipynb 環境では正常に動作しませんでした(returned no-zero exit status 128.)
-    return '_20231222'
+    return '_20231228'
 
 def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, q_rtd_H, q_rtd_C, q_max_H, q_max_C, V_hs_dsgn_H, V_hs_dsgn_C, Q,
             VAV, general_ventilation, hs_CAV, duct_insulation, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i,
@@ -490,6 +490,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
             # (43)　暖冷房区画𝑖の吹き出し風量
             V_supply_d_t_i = dc.get_V_supply_d_t_i(L_star_H_d_t_i, L_star_CS_d_t_i, Theta_sur_d_t_i, l_duct_i, Theta_star_HBR_d_t,
                                                             V_vent_g_i, V_dash_supply_d_t_i, VAV, region, Theta_hs_out_d_t)
+            V_supply_d_t_i = dc.cap_V_supply_d_t_i(V_supply_d_t_i, V_dash_supply_d_t_i, V_vent_g_i, region, V_hs_dsgn_H, V_hs_dsgn_C)
 
             # (41)　暖冷房区画𝑖の吹き出し温度
             Theta_supply_d_t_i = dc.get_Thata_supply_d_t_i(Theta_sur_d_t_i, Theta_hs_out_d_t, Theta_star_HBR_d_t, l_duct_i,

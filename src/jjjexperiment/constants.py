@@ -1,3 +1,5 @@
+from jjjexperiment.options import *
+
 # FIXME: PROCESS_TYPE の置き場はこのファイル以外で最適な場所があれば移動する
 PROCESS_TYPE_1 = 'ダクト式セントラル空調機'
 PROCESS_TYPE_2 = 'ルームエアコンディショナ活用型全館空調（旧：現行省エネ法ルームエアコンモデル）'
@@ -34,9 +36,9 @@ change_supply_volume_before_vav_adjust: int = 1
 """VAV調整前の吹き出し風量の式を変更"""
 change_heat_source_outlet_required_temperature: int = 1
 """熱源機の出口における空気温度"""
-change_V_supply_d_t_i_max: int = 1
+change_V_supply_d_t_i_max: int = Vサプライの上限キャップ.外さない.value
 """V_supply_d_t_iの上限キャップを外す"""
-carry_over_heat: int = 1
+carry_over_heat: int = 過剰熱量繰越計算.行わない.value
 """過剰熱量を次の時刻に持ち越す"""
 
 #以下、潜熱評価モデル追加対応(暖房)

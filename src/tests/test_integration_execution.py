@@ -49,7 +49,15 @@ class Test既存計算維持_デフォルト入力時:
         _logger.init_logger()
 
         inputs = copy.deepcopy(self._inputs1)
-        # inputs["carry_over_heat"] = 過剰熱量繰越計算.行う.value
+        fixtures = {
+                "U_A": 1.24,  # 0.86
+                "change_V_supply_d_t_i_max": "2",
+                "H_A": {"VAV": 2, "input_V_hs_dsgn_H": 2, "V_hs_dsgn_H": 1300},
+                "C_A": {"VAV": 2, "input_V_hs_dsgn_C": 2, "V_hs_dsgn_C": 1300}
+            }
+        # 複製しないと別テストで矛盾する
+        inputs_double = copy.deepcopy(inputs)
+        inputs = deep_update(inputs_double, fixtures)
         result = calc(inputs, test_mode=True)
 
         assert result['TValue'].E_C == pytest.approx(expected_result_type1.E_C, rel=1e-6)
