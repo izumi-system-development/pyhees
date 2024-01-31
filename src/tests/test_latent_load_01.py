@@ -377,7 +377,6 @@ def prepare_args_for_calc_Q_UT_A() -> dict:
         "YUCACO_r_A_ufvnt": 0.7089130102430821,
         "HEX": None,
         "SHC": None,
-        "R_g": None,
         "spec_MR": None,
         "spec_OR": None,
         "mode_MR": None,
@@ -448,7 +447,6 @@ def prepare_args_for_calc_Q_UT_A() -> dict:
         'underfloor_insulation': uflr_insul,
         'underfloor_air_conditioning_air_supply': uflr_air_cdtn_air_spl,
         'YUCACO_r_A_ufvnt': fixtures["YUCACO_r_A_ufvnt"],
-        'R_g': fixtures["R_g"],
         'climateFile': fixtures["climateFile"],
     }
     H_args = {

@@ -189,6 +189,9 @@ def set_constants(input: dict):
   if 'q_rtd_C_limit' in input:
     global q_rtd_C_limit
     q_rtd_C_limit = float(input['q_rtd_C_limit'])
+  if 'R_g' in input:
+    global R_g  # 地盤またはそれを覆う基礎の表面熱伝達抵抗 ((m2・K)/W) ex. 0.15
+    R_g = float(input['R_g'])
   if 'change_supply_volume_before_vav_adjust' in input:
     global change_supply_volume_before_vav_adjust
     change_supply_volume_before_vav_adjust = int(input['change_supply_volume_before_vav_adjust'])
