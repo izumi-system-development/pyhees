@@ -57,19 +57,19 @@ a_r_H_t_t_a1: float = 0.2944
 """コンプレッサ効率特性_a1"""
 a_r_H_t_t_a0: float = 0
 """コンプレッサ効率特性_a0"""
-airvolume_minimum_H: float = 14.38995 / 60
-"""風量特性_中間期及び最小風量 [m3/s]"""
-airvolume_maximum_H: float = 24.3824 / 60
-"""風量特性_最大風量 [m3/s]"""
+airvolume_minimum_H: float = 14.38995
+"""風量特性_最小風量 [m3/min]"""
+airvolume_maximum_H: float = 24.3824
+"""風量特性_最大風量 [m3/min]"""
 airvolume_coeff_a4_H: float = 0
 """風量特性_a4"""
 airvolume_coeff_a3_H: float = 0
 """風量特性_a3"""
 airvolume_coeff_a2_H: float = 0
 """風量特性_a2"""
-airvolume_coeff_a1_H: float = 1.2946 / 60
+airvolume_coeff_a1_H: float = 1.2946
 """風量特性_a1"""
-airvolume_coeff_a0_H: float = 12.084 / 60
+airvolume_coeff_a0_H: float = 12.084
 """風量特性_a0"""
 P_fan_H_d_t_a4: float = 0
 """ファン消費電力_a4"""
@@ -110,19 +110,19 @@ a_r_C_t_t_a1: float = 0.2944
 """コンプレッサ効率特性_a1"""
 a_r_C_t_t_a0: float = 0
 """コンプレッサ効率特性_a0"""
-airvolume_minimum_C: float = 14.38995 / 60
-"""風量特性_中間期及び最小風量 [m3/s]"""
-airvolume_maximum_C: float = 24.3824 / 60
-"""風量特性_最大風量 [m3/s]"""
+airvolume_minimum_C: float = 14.38995
+"""風量特性_最小風量 [m3/min]"""
+airvolume_maximum_C: float = 24.3824
+"""風量特性_最大風量 [m3/min]"""
 airvolume_coeff_a4_C: float = 0
 """風量特性_a4"""
 airvolume_coeff_a3_C: float = 0
 """風量特性_a3"""
 airvolume_coeff_a2_C: float = 0
 """風量特性_a2"""
-airvolume_coeff_a1_C: float = 2.4855 / 60
+airvolume_coeff_a1_C: float = 2.4855
 """風量特性_a1"""
-airvolume_coeff_a0_C: float = 10.209 / 60
+airvolume_coeff_a0_C: float = 10.209
 """風量特性_a0"""
 P_fan_C_d_t_a4: float = 0
 """ファン消費電力_a4"""

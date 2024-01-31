@@ -1357,8 +1357,8 @@ def get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t, region, for_cooling):
     # WARNING: 少数点の扱いの問題で意図しない結果になる
     # assert min(V_dash_hs_supply_d_t) == constants.airvolume_minimum
 
-    # NOTE: ここまで m3/s ベース 変換-> m3/h
-    return V_dash_hs_supply_d_t * 3600
+    # NOTE: ここまで m3/min ベース 変換-> m3/h
+    return V_dash_hs_supply_d_t * 60
 
 def get_V_dash_hs_supply_d_t(V_hs_min, V_hs_dsgn_H, V_hs_dsgn_C, Q_hs_rtd_H, Q_hs_rtd_C, Q_hat_hs_d_t, region):
     """(36-1)(36-2)(36-3)
