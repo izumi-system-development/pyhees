@@ -29,7 +29,6 @@ import pyhees.section4_7_i as pipe
 from pyhees.section4_7_common import get_Q_out_H_hs_d_t
 
 from pyhees.section11_1 import \
-    load_outdoor, \
     load_climate, \
     get_Theta_ex, \
     get_X_ex, \
@@ -439,7 +438,6 @@ def calc_Q_UT_hs_d_t(H_HS, H_MR, H_OR, region, A_A, A_MR, A_OR, mode_MR, mode_OR
         # 外気温
         climate = load_climate(region)
         Theta_ex = get_Theta_ex(climate)
-        outdoor = load_outdoor()
         Theta_ex_a_Ave = get_Theta_ex_a_Ave(Theta_ex)
         Theta_ex_d_Ave_d = get_Theta_ex_d_Ave_d(Theta_ex)
         Theta_ex_H_Ave = get_Theta_ex_H_Ave(Theta_ex, L_T_H_rad)
@@ -718,7 +716,6 @@ def calc_E_E_hs_d_t(H_HS, H_MR, H_OR, region, A_A, A_MR, A_OR, mode_MR, mode_OR,
         # 外気温
         climate = load_climate(region)
         Theta_ex = get_Theta_ex(climate)
-        outdoor = load_outdoor()
         Theta_ex_a_Ave = get_Theta_ex_a_Ave(Theta_ex)
         Theta_ex_d_Ave_d = get_Theta_ex_d_Ave_d(Theta_ex)
         Theta_ex_H_Ave = get_Theta_ex_H_Ave(Theta_ex, L_T_H_rad)

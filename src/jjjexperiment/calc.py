@@ -3,7 +3,7 @@ import pandas as pd
 from datetime import datetime
 
 from pyhees.section3_2_8 import get_r_env
-from pyhees.section11_1 import calc_h_ex, load_climate, load_outdoor, get_Theta_ex, get_X_ex
+from pyhees.section11_1 import calc_h_ex, load_climate, get_Theta_ex, get_X_ex
 from pyhees.section11_5 import get_J
 
 # ダクト式セントラル空調機
@@ -33,30 +33,23 @@ def version_info() -> str:
     # ipynb 環境では正常に動作しませんでした(returned no-zero exit status 128.)
     return '_20231025'
 
-def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, q_rtd_H, q_rtd_C, q_max_H, q_max_C, V_hs_dsgn_H, V_hs_dsgn_C, Q,
+def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, q_rtd_H, q_rtd_C, q_max_H, q_max_C, V_hs_dsgn_H, V_hs_dsgn_C, Q,
             VAV, general_ventilation, hs_CAV, duct_insulation, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i,
-            type, input_C_af_H, input_C_af_C, underfloor_insulation, underfloor_air_conditioning_air_supply, YUCACO_r_A_ufvnt, R_g, climateFile, outdoorFile):
+            type, input_C_af_H, input_C_af_C, underfloor_insulation, underfloor_air_conditioning_air_supply, YUCACO_r_A_ufvnt, R_g, climateFile):
     """未処理負荷と機器の計算に必要な変数を取得"""
 
     df_output  = pd.DataFrame(index = pd.date_range(datetime(2023,1,1,1,0,0), datetime(2024,1,1,0,0,0), freq='h'))
     df_output2 = pd.DataFrame()
     df_output3 = pd.DataFrame()
 
-    # 外気条件
+    # 気象条件
     if climateFile == '-':
         climate = load_climate(region)
     else:
-        climate = pd.read_csv(climateFile, nrows=24 * 365)
-
-    if outdoorFile == '-':
-        outdoor = load_outdoor()
-        Theta_ex_d_t = get_Theta_ex(climate)
-        X_ex_d_t = get_X_ex(climate)
-    else:
-        outdoor = pd.read_csv(outdoorFile, skiprows=4, nrows=24 * 365,
-            names=('day', 'hour', 'holiday', 'Theta_ex_1', 'X_ex_1'))
-        Theta_ex_d_t = outdoor['Theta_ex_1'].values
-        X_ex_d_t = outdoor['X_ex_1'].values
+        climate = pd.read_csv(climateFile, nrows=24 * 365, encoding="SHIFT-JIS")
+    Theta_ex_d_t = get_Theta_ex(climate)
+    X_ex_d_t = get_X_ex(climate)
+    h_ex_d_t = calc_h_ex(X_ex_d_t, Theta_ex_d_t)
 
     df_output['Theta_ex_d_t']  = Theta_ex_d_t
     df_output['X_ex_d_t']      = X_ex_d_t
@@ -157,7 +150,6 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
     df_output3['U_prt'] = [U_prt]
 
     # (60)　非居室の間仕切の面積
-    r_env = get_r_env(A_env, A_A)
     A_prt_i = dc.get_A_prt_i(A_HCZ_i, r_env, A_MR, A_NR, A_OR)
     df_output3['r_env'] = [r_env]
     df_output2['A_prt_i'] = A_prt_i
@@ -188,7 +180,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
 
     # (55)　小屋裏の空気温度
     Theta_attic_d_t = dc.get_Theta_attic_d_t(Theta_SAT_d_t, Theta_star_HBR_d_t)
-    df_output['Theta_attic_d_t'] = Theta_attic_d_t    
+    df_output['Theta_attic_d_t'] = Theta_attic_d_t
 
     # (54)　ダクトの周囲の空気温度
     Theta_sur_d_t_i = dc.get_Theta_sur_d_t_i(Theta_star_HBR_d_t, Theta_attic_d_t, l_duct_in_i, l_duct_ex_i, duct_insulation)
@@ -736,7 +728,7 @@ def calc_E_E_H_d_t(
         q_max_C, q_max_H,                                  # 最大暖房時
         q_rtd_C, q_hs_rtd_C,                               # 定格冷房時
         q_rtd_H, e_rtd_H, P_rac_fan_rtd_H, V_fan_rtd_H, P_fan_rtd_H, q_hs_rtd_H, P_hs_rtd_H,  # 定格暖房時
-        type, region, dualcompressor_H, EquipmentSpec, input_C_af_H, f_SFP_H, outdoorFile,  # その他
+        type, region, dualcompressor_H, EquipmentSpec, input_C_af_H, f_SFP_H, climateFile,  # その他
         simu_R_H=None, spec: Spec=None, Theta_real_inner=None, RH_real_inner=None):  # 電中研モデルのみ使用
     """ (1)
     Args:
@@ -803,7 +795,7 @@ def calc_E_E_H_d_t(
                                    q_rtd_C, q_rtd_H, q_max_C, q_max_H,  # q[W]
                                    e_rtd_H, dualcompressor_H,
                                    q_hs_H_d_t * 3.6/1000,  # L_H[MJ/h]
-                                   input_C_af_H, outdoorFile)
+                                   input_C_af_H, climateFile)
             E_E_fan_H_d_t = \
                 dc_a.get_E_E_fan_H_d_t(type, P_rac_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H,
                                        q_hs_H_d_t,  # q[W]
@@ -825,7 +817,7 @@ def calc_E_E_H_d_t(
                                 region= region,
                                 Theta_real_inner= Theta_real_inner,
                                 RH_real_inner= RH_real_inner,
-                                outdoorFile= outdoorFile)
+                                climateFile= climateFile)
             E_E_CRAC_H_d_t = np.divide(q_hs_H_d_t / 1000,  # kW
                                        COP_H_d_t,
                                        out=np.zeros_like(q_hs_H_d_t),
@@ -864,7 +856,7 @@ def calc_E_E_C_d_t(
         q_hs_mid_C, P_hs_mid_C, V_fan_mid_C, P_fan_mid_C,  # 中間冷房時
         q_max_C,                                           # 最大冷房時
         q_hs_rtd_C, P_hs_rtd_C, V_fan_rtd_C, P_fan_rtd_C, q_rtd_C, e_rtd_C, P_rac_fan_rtd_C,  # 定格冷房時
-        type, region, dualcompressor_C, EquipmentSpec, input_C_af_C, f_SFP_C, outdoorFile,  # その他
+        type, region, dualcompressor_C, EquipmentSpec, input_C_af_C, f_SFP_C, climateFile,  # その他
         simu_R_C=None, spec: Spec=None, Theta_real_inner=None, RH_real_inner=None):  # 電中研モデルのみ使用
     """ (1)
     Args:
@@ -941,7 +933,7 @@ def calc_E_E_C_d_t(
                 rac.calc_E_E_C_d_t(region, q_rtd_C, q_max_C,  # q[W]
                                    e_rtd_C, dualcompressor_C,
                                    q_hs_CS_d_t * 3.6/1000, q_hs_CL_d_t * 3.6/1000,  # L_H[MJ/h]
-                                   input_C_af_C, outdoorFile)
+                                   input_C_af_C, climateFile)
             # (38) 送風機の付加分 (kWh/h)
             E_E_fan_C_d_t = \
                 dc_a.get_E_E_fan_C_d_t(type, P_rac_fan_rtd_C,
@@ -968,7 +960,7 @@ def calc_E_E_C_d_t(
                             region= region,
                             Theta_real_inner= Theta_real_inner,
                             RH_real_inner= RH_real_inner,
-                            outdoorFile= outdoorFile)
+                            climateFile= climateFile)
             E_E_CRAC_C_d_t = np.divide(q_hs_C_d_t / 1000,  # kW
                                 COP_C_d_t,
                                 out=np.zeros_like(q_hs_C_d_t),

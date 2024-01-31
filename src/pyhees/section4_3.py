@@ -19,7 +19,6 @@ from pyhees.section4_3_a import \
     get_q_max_C
 
 from pyhees.section11_1 import \
-    load_outdoor, \
     load_climate, \
     get_Theta_ex, \
     get_X_ex, \

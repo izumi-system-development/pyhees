@@ -4,7 +4,7 @@ import pandas as pd
 from jjjexperiment.denchu_1 import *
 
 from pyhees.section11_1 import \
-    load_outdoor, get_Theta_ex, get_X_ex, load_climate
+    get_Theta_ex, get_X_ex, load_climate
 
 from jjjexperiment.logger import LimitedLoggerAdapter as _logger  # デバッグ用ロガー
 
@@ -104,7 +104,7 @@ def simu_COP_H(q: float, Pc: float, R: float, M_ein: float, M_cin: float, cdtn: 
 
 def calc_COP_C_d_t(q_d_t, P_rac_fan_rtd, R,
                     V_rac_inner_d_t, V_rac_outer_d_t, region,
-                    Theta_real_inner, RH_real_inner, outdoorFile):
+                    Theta_real_inner, RH_real_inner, climateFile):
     """
     Args:
         q_d_t [kW] \n
@@ -114,19 +114,16 @@ def calc_COP_C_d_t(q_d_t, P_rac_fan_rtd, R,
         V_rac_outer_d_t [m3/h] \n
         Theta_real_inner [℃]: 室内温度設定 \n
         RH_real_inner [%]: 室内相対湿度設定 \n
+        climateFile: 気象データファイル \n
     """
     """ 外気条件(時系列変化) 6.1 (5) 同様 """
 
-    if outdoorFile == '-':
+    if climateFile == '-':
         climate = load_climate(region)
-        #outdoor = load_outdoor()
-        Theta_ex = get_Theta_ex(climate)
-        X_ex = get_X_ex(climate)
     else:
-        outdoor = pd.read_csv(outdoorFile, skiprows=4, nrows=24 * 365,
-            names=('day', 'hour', 'holiday', 'Theta_ex_1', 'X_ex_1'))
-        Theta_ex = outdoor['Theta_ex_1'].values
-        X_ex = outdoor['X_ex_1'].values
+        climate = pd.read_csv(climateFile, nrows=24 * 365, encoding="SHIFT-JIS")
+    Theta_ex = get_Theta_ex(climate)
+    X_ex = get_X_ex(climate)
 
     """ 室内条件(固定?) """
 
@@ -147,7 +144,7 @@ def calc_COP_C_d_t(q_d_t, P_rac_fan_rtd, R,
 
 def calc_COP_H_d_t(q_d_t, P_rac_fan_rtd, R,
                    V_rac_inner_d_t, V_rac_outer_d_t, region,
-                   Theta_real_inner, RH_real_inner, outdoorFile):
+                   Theta_real_inner, RH_real_inner, climateFile):
     """
     Args:
         q_d_t: [kW]\n
@@ -159,15 +156,12 @@ def calc_COP_H_d_t(q_d_t, P_rac_fan_rtd, R,
     """
     """ 外気条件(時系列変化) 6.1 (5) 同様 """
 
-    if outdoorFile == '-':
+    if climateFile == '-':
         climate = load_climate(region)
-        Theta_ex = get_Theta_ex(climate)
-        X_ex = get_X_ex(climate)
     else:
-        outdoor = pd.read_csv(outdoorFile, skiprows=4, nrows=24 * 365,
-            names=('day', 'hour', 'holiday', 'Theta_ex_1', 'X_ex_1'))
-        Theta_ex = outdoor['Theta_ex_1'].values
-        X_ex = outdoor['X_ex_1'].values
+        climate = pd.read_csv(climateFile, nrows=24 * 365, encoding="SHIFT-JIS")
+    Theta_ex = get_Theta_ex(climate)
+    X_ex = get_X_ex(climate)
 
     _logger.NDdebug(f"Theta_ex", Theta_ex)
     _logger.NDdebug(f"X_ex", X_ex)

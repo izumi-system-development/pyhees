@@ -22,7 +22,6 @@ from pyhees.section4_7_i import \
     get_A_A_R
 
 from pyhees.section11_1 import \
-    load_outdoor, \
     get_Theta_ex, \
     get_X_ex, \
     load_climate, \
@@ -3010,7 +3009,6 @@ def get_Theta():
 # デバッグ用コード
 # ============================================================================
 if __name__ == '__main__':
-    from pyhees.section11_1 import load_outdoor
     from pyhees.section2_2 import get_E_H_d_t, get_E_C_d_t
     from pyhees.section3_1 import get_Q
     from pyhees.section3_2 import calc_r_env, get_Q_dash, get_mu_H, get_mu_C
