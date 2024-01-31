@@ -363,10 +363,10 @@ def get_CRAC_spec(input: dict):
     # 方式ごとに入力項目があるため、typeを見て取得する値を変えます。
     # 方式1はルームエアコンでないため、入力がありません。
     input_C_af_C: dict = {
-        'input_mode': 1,
+        'input_mode': 2,
         'dedicated_chamber': False,
         'fixed_fin_direction': False,
-        'C_af_C': None
+        'C_af_C': 1.0
     }
     if input['C_A']['type'] == 2:
         input_C_af_C['input_mode'] = int(input['C_A']['input_C_af_C2'])
@@ -386,10 +386,10 @@ def get_CRAC_spec(input: dict):
 
     # 室内機吹き出し風量に関する出力補正係数の入力（暖房）
     input_C_af_H: dict = {
-        'input_mode': 1,
+        'input_mode': 2,
         'dedicated_chamber': False,
         'fixed_fin_direction': False,
-        'C_af_H': None
+        'C_af_H': 1.0
     }
     if input['H_A']['type'] == 2:
         input_C_af_H['input_mode'] = int(input['H_A']['input_C_af_H2'])
