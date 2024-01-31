@@ -1809,7 +1809,8 @@ def get_V_dash_supply_d_t_i(r_supply_des_i, V_dash_hs_supply_d_t, V_vent_g_i):
       日付dの時刻tにおけるVAV調整前の熱源機の風量（m3/h）
 
     """
-    return np.maximum(r_supply_des_i[:5, np.newaxis] * V_dash_hs_supply_d_t, V_vent_g_i[:5, np.newaxis])
+    return np.maximum(r_supply_des_i[:5, np.newaxis] * V_dash_hs_supply_d_t,
+                      V_vent_g_i[:5, np.newaxis])
 
 def get_V_dash_supply_d_t_i_2023(r_supply_des_d_t_i, V_dash_hs_supply_d_t, V_vent_g_i):
     """(44)
@@ -1823,7 +1824,8 @@ def get_V_dash_supply_d_t_i_2023(r_supply_des_d_t_i, V_dash_hs_supply_d_t, V_ven
       日付dの時刻tにおけるVAV調整前の熱源機の風量（m3/h）
 
     """
-    return np.maximum(np.sum(r_supply_des_d_t_i, axis=0) * V_dash_hs_supply_d_t, V_vent_g_i[:5, np.newaxis])
+    return np.maximum(r_supply_des_d_t_i * V_dash_hs_supply_d_t,
+                      V_vent_g_i[:5, np.newaxis])
 
 def get_r_supply_des_i(A_HCZ_i):
     """(45)
@@ -1853,11 +1855,38 @@ def get_r_supply_des_d_t_i_2023(region, L_CS_d_t_i, L_H_d_t_i):
     from pyhees.section4_2_a import get_season_array_d_t
     H, C, M = get_season_array_d_t(region)
     r_supply_des_d_t_i = np.zeros((5, 24 * 365))
-    sum_L_H_d_t_i = np.sum(L_H_d_t_i[:5, H], axis=0)
-    r_supply_des_d_t_i[:, H] = np.divide(L_H_d_t_i[:5, H], sum_L_H_d_t_i, out=np.zeros_like(L_H_d_t_i[:5, H]), where=sum_L_H_d_t_i!=0)
-    r_supply_des_d_t_i[:, M] = 0
-    sum_L_CS_d_t_i = np.sum(L_CS_d_t_i[:5, C], axis=0)
-    r_supply_des_d_t_i[:, C] = np.divide(L_CS_d_t_i[:5, C], sum_L_CS_d_t_i, out=np.zeros_like(L_CS_d_t_i[:5, C]), where=sum_L_CS_d_t_i!=0)
+
+    # NOTE: よりシンプルに考えるため、どの時刻でとっても合計が1となる配列を作成します
+
+    sum_L_H_d_t = np.sum(L_H_d_t_i[:5, H], axis=0)  # 1d-shape(4056, )
+    sum_L_H_d_t = np.reshape(sum_L_H_d_t, (1, len(sum_L_H_d_t)))  # 2d-shape(1, 4056)
+
+    r_supply_des_d_t_i[:, H] \
+      = np.divide( \
+          L_H_d_t_i[:5, H],  # 2d-shape(5, 4056)
+          sum_L_H_d_t,       # 2d-shape(1, 4056)
+          where=sum_L_H_d_t!=0,
+          out=0.2 * np.ones_like(L_H_d_t_i[:5, H]))  # NOTE: where False 時の値
+
+    sum_L_CS_d_t = np.sum(L_CS_d_t_i[:5, C], axis=0)
+    sum_L_CS_d_t = np.reshape(sum_L_CS_d_t, (1, len(sum_L_CS_d_t)))  # 2d-shape(1, 2808)
+
+    r_supply_des_d_t_i[:, C] \
+      = np.divide(
+          L_CS_d_t_i[:5, C],  # 2d-shape(5, 2808)
+          sum_L_CS_d_t,       # 2d-shape(1, 2808)
+          where=sum_L_CS_d_t!=0,
+          out=0.2 * np.ones_like(L_CS_d_t_i[:5, C]))  # NOTE: where False 時の値
+
+    r_supply_des_d_t_i[:, M] = 0.2  # NOTE: 合計で1となるよう
+
+    # 確認コード: 全ての時刻で合計が1(バランス)
+    sum_each_columns = np.sum(r_supply_des_d_t_i, axis=0)
+    # NOTE: math ライブラリなど使わないない簡易的なチェックにしています
+    sum_each_columns.all()
+    condition = (sum_each_columns > 0.9) & (sum_each_columns < 1.1)
+    check = sum_each_columns[condition]
+    assert len(check) == len(sum_each_columns)
 
     return r_supply_des_d_t_i
 

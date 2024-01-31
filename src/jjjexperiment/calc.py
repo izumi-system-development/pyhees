@@ -29,7 +29,7 @@ def version_info() -> str:
     """
     # NOTE: subprocessモジュールによるコミット履歴からの生成は \
     # ipynb 環境では正常に動作しませんでした(returned no-zero exit status 128.)
-    return '_20231128'
+    return '_20231222'
 
 def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, q_rtd_H, q_rtd_C, q_max_H, q_max_C, V_hs_dsgn_H, V_hs_dsgn_C, Q,
             VAV, general_ventilation, hs_CAV, duct_insulation, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i,
