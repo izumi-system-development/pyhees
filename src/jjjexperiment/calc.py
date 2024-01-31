@@ -2,9 +2,8 @@ import numpy as np
 import pandas as pd
 from datetime import datetime
 
-from pyhees.section3_2_8 import get_r_env
-from pyhees.section11_1 import calc_h_ex, load_climate, get_Theta_ex, get_X_ex
-from pyhees.section11_5 import get_J
+from pyhees.section11_1 import calc_h_ex, load_climate, get_Theta_ex, get_X_ex, get_climate_df
+from pyhees.section11_2 import calc_I_s_d_t
 
 # ダクト式セントラル空調機
 import pyhees.section4_2 as dc
@@ -49,12 +48,12 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         climate = pd.read_csv(climateFile, nrows=24 * 365, encoding="SHIFT-JIS")
     Theta_ex_d_t = get_Theta_ex(climate)
     X_ex_d_t = get_X_ex(climate)
+    J_d_t = calc_I_s_d_t(0, 0, get_climate_df(climate))
     h_ex_d_t = calc_h_ex(X_ex_d_t, Theta_ex_d_t)
 
     df_output['Theta_ex_d_t']  = Theta_ex_d_t
     df_output['X_ex_d_t']      = X_ex_d_t
 
-    J_d_t = get_J(climate)
     h_ex_d_t = calc_h_ex(X_ex_d_t, Theta_ex_d_t)
 
     df_output['J_d_t']         = J_d_t
