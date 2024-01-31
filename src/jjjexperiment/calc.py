@@ -251,7 +251,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
             V_dash_hs_supply_d_t = dc.get_V_dash_hs_supply_d_t(V_hs_min, updated_V_hs_dsgn_H, updated_V_hs_dsgn_C, Q_hs_rtd_H, Q_hs_rtd_C, Q_hat_hs_d_t, region)
             df_output['V_dash_hs_supply_d_t'] = V_dash_hs_supply_d_t
 
-    if VAV or constants.change_supply_volume_before_vav_adjust == VAVありなしの吹出風量.数式を統一する.value:
+    if VAV and constants.change_supply_volume_before_vav_adjust == VAVありなしの吹出風量.数式を統一する.value:
         # (45)　風量バランス
         r_supply_des_d_t_i = dc.get_r_supply_des_d_t_i_2023(region, L_CS_d_t_i, L_H_d_t_i)
         # (44)　VAV 調整前の吹き出し風量
