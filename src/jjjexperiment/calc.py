@@ -331,22 +331,21 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
     )
 
     if constants.carry_over_heat == 2:
+
+        # インデックス順に更新対象
+        L_star_CS_d_t_i = np.zeros((5, 24 * 365))
+        L_star_H_d_t_i = np.zeros((5, 24 * 365))
         Theta_HBR_d_t_i = np.zeros((5, 24 * 365))
-        Theta_NR_d_t = np.zeros((24 * 365))
+        Theta_NR_d_t_i = np.zeros(24 * 365)
+
         for hour in range(0, 24 * 365):
             # TODO: ここの中はまだ元のコードのコピペ。時刻別に分解する必要がある。
 
             # (9)　熱取得を含む負荷バランス時の冷房顕熱負荷
-            L_star_CS_d_t_i = dc.get_L_star_CS_d_t_i(L_CS_d_t_i, Q_star_trs_prt_d_t_i, region)
+            L_star_CS_d_t_i[:, hour:hour+1] = dc.get_L_star_CS_i_2023(L_CS_d_t_i, Q_star_trs_prt_d_t_i, region, Theta_star_HBR_d_t, Theta_HBR_d_t_i, hour)
             # (8)　熱損失を含む負荷バランス時の暖房負荷
-            L_star_H_d_t_i = dc.get_L_star_H_d_t_i(L_H_d_t_i, Q_star_trs_prt_d_t_i, region)
-            df_output = df_output.assign(
-                L_star_H_d_t_i_1 = L_star_H_d_t_i[0],
-                L_star_H_d_t_i_2 = L_star_H_d_t_i[1],
-                L_star_H_d_t_i_3 = L_star_H_d_t_i[2],
-                L_star_H_d_t_i_4 = L_star_H_d_t_i[3],
-                L_star_H_d_t_i_5 = L_star_H_d_t_i[4]
-            )
+            L_star_H_d_t_i[:, hour:hour+1] = dc.get_L_star_H_i_2023(L_H_d_t_i, Q_star_trs_prt_d_t_i, region, Theta_star_HBR_d_t, Theta_HBR_d_t_i, hour)
+
 
             ####################################################################################################################
             if type == PROCESS_TYPE_1 or type == PROCESS_TYPE_3:
@@ -517,13 +516,15 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
                                                      Theta_uf_d_t,
                                                      Theta_supply_d_t_i[1])
 
+            # 順次 一時点のみ更新
+
             # (46)　暖冷房区画𝑖の実際の居室の室温
-            Theta_HBR_d_t_i[:, hour] = dc.get_Theta_HBR_d_t_i_2023(Theta_star_HBR_d_t, V_supply_d_t_i, Theta_supply_d_t_i, U_prt, A_prt_i, Q,
-                                                          A_HCZ_i, L_star_H_d_t_i, L_star_CS_d_t_i, region, hour)
+            Theta_HBR_d_t_i[:, hour:hour+1] = dc.get_Theta_HBR_i_2023(Theta_star_HBR_d_t, V_supply_d_t_i, Theta_supply_d_t_i, U_prt, A_prt_i, Q,
+                                                          A_HCZ_i, L_star_H_d_t_i, L_star_CS_d_t_i, region, Theta_HBR_d_t_i, hour)
 
             # (48)　実際の非居室の室温
-            Theta_NR_d_t[hour] = dc.get_Theta_NR_d_t_2023(Theta_star_NR_d_t, Theta_star_HBR_d_t, Theta_HBR_d_t_i, A_NR, V_vent_l_NR_d_t,
-                                                V_dash_supply_d_t_i, V_supply_d_t_i, U_prt, A_prt_i, Q, hour)
+            Theta_NR_d_t_i[hour:hour+1] = dc.get_Theta_NR_2023(Theta_star_NR_d_t, Theta_star_HBR_d_t, Theta_HBR_d_t_i, A_NR, V_vent_l_NR_d_t,
+                                                V_dash_supply_d_t_i, V_supply_d_t_i, U_prt, A_prt_i, Q, Theta_NR_d_t_i, hour)
 
     else:
         # (9)　熱取得を含む負荷バランス時の冷房顕熱負荷
@@ -712,10 +713,11 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
 
     # ループ計算部分の出力
     df_output = df_output.assign(
-        L_star_CL_d_t = L_star_CL_d_t,
-        L_star_CS_d_t = L_star_CS_d_t,
-        L_star_dash_CL_d_t = L_star_dash_CL_d_t,
-        L_star_dash_C_d_t  = L_star_dash_C_d_t,
+        L_star_H_d_t_i_1 = L_star_H_d_t_i[0],
+        L_star_H_d_t_i_2 = L_star_H_d_t_i[1],
+        L_star_H_d_t_i_3 = L_star_H_d_t_i[2],
+        L_star_H_d_t_i_4 = L_star_H_d_t_i[3],
+        L_star_H_d_t_i_5 = L_star_H_d_t_i[4]
     )
     df_output['SHF_dash_d_t'] = SHF_dash_d_t
     df_output = df_output.assign(
@@ -724,21 +726,32 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         Q_hs_max_CS_d_t = Q_hs_max_CS_d_t,
         Q_hs_max_H_d_t  = Q_hs_max_H_d_t,
     )
-    df_output['C_df_H_d_t'] = C_df_H_d_t
-    df_output = df_output.assign(
-        Q_r_max_H_d_t = Q_r_max_H_d_t,
-        Q_r_max_C_d_t = Q_r_max_C_d_t,
-    )
-    df_output3 = df_output3.assign(
-        q_r_max_H = [q_r_max_H],
-        q_r_max_C = [q_r_max_C],
-        SHF_L_min_c = [SHF_L_min_c]
-    )
-    df_output = df_output.assign(
-        L_max_CL_d_t  = L_max_CL_d_t,
-        L_dash_CL_d_t = L_dash_CL_d_t,
-        L_dash_C_d_t  = L_dash_C_d_t,
-    )
+
+    if type == 1 or type == 3:
+        df_output = df_output.assign(
+            L_star_CL_d_t = L_star_CL_d_t,
+            L_star_CS_d_t = L_star_CS_d_t,
+            L_star_dash_CL_d_t = L_star_dash_CL_d_t,
+            L_star_dash_C_d_t  = L_star_dash_C_d_t,
+        )
+
+    if type == 2 or type == 4:
+        df_output['C_df_H_d_t'] = C_df_H_d_t
+        df_output = df_output.assign(
+            Q_r_max_H_d_t = Q_r_max_H_d_t,
+            Q_r_max_C_d_t = Q_r_max_C_d_t,
+        )
+        df_output3 = df_output3.assign(
+            q_r_max_H = [q_r_max_H],
+            q_r_max_C = [q_r_max_C],
+            SHF_L_min_c = [SHF_L_min_c]
+        )
+        df_output = df_output.assign(
+            L_max_CL_d_t  = L_max_CL_d_t,
+            L_dash_CL_d_t = L_dash_CL_d_t,
+            L_dash_C_d_t  = L_dash_C_d_t,
+        )
+
     df_output['X_star_hs_in_d_t'] = X_star_hs_in_d_t
     df_output['Theta_star_hs_in_d_t'] = Theta_star_hs_in_d_t
     df_output['X_hs_out_min_C_d_t'] = X_hs_out_min_C_d_t
