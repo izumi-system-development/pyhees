@@ -360,22 +360,52 @@ def get_CRAC_spec(input: dict):
 
     # NOTE: 方式2 以外でも評価されていたので全体適用としました
     # 室内機吹き出し風量に関する出力補正係数の入力（冷房）
-    input_mode_C_af_C = int(input['C_A']['input_C_af_C'])
+    # 方式ごとに入力項目があるため、typeを見て取得する値を変えます。
+    # 方式1はルームエアコンでないため、入力がありません。
     input_C_af_C: dict = {
-        'input_mode': input_mode_C_af_C,
-        'dedicated_chamber': int(input['C_A']['dedicated_chamber']) == 2,
-        'fixed_fin_direction': int(input['C_A']['fixed_fin_direction']) == 2,
-        'C_af_C': float(input['C_A']['C_af_C']) if input_mode_C_af_C == 2 else None
+        'input_mode': 2,
+        'dedicated_chamber': False,
+        'fixed_fin_direction': False,
+        'C_af_C': 1.0
     }
+    if input['C_A']['type'] == 2:
+        input_C_af_C['input_mode'] = int(input['C_A']['input_C_af_C2'])
+        input_C_af_C['dedicated_chamber'] = int(input['C_A']['dedicated_chamber2']) == 2
+        input_C_af_C['fixed_fin_direction'] = int(input['C_A']['fixed_fin_direction2']) == 2
+        input_C_af_C['C_af_C'] = float(input['C_A']['C_af_C2']) if input_C_af_C['input_mode'] == 2 else None
+    elif input['C_A']['type'] == 3:
+        input_C_af_C['input_mode'] = int(input['C_A']['input_C_af_C3'])
+        input_C_af_C['dedicated_chamber'] = int(input['C_A']['dedicated_chamber3']) == 2
+        input_C_af_C['fixed_fin_direction'] = int(input['C_A']['fixed_fin_direction3']) == 2
+        input_C_af_C['C_af_C'] = float(input['C_A']['C_af_C3']) if input_C_af_C['input_mode'] == 2 else None
+    elif input['C_A']['type'] == 4:
+        input_C_af_C['input_mode'] = int(input['C_A']['input_C_af_C4'])
+        input_C_af_C['dedicated_chamber'] = int(input['C_A']['dedicated_chamber4']) == 2
+        input_C_af_C['fixed_fin_direction'] = int(input['C_A']['fixed_fin_direction4']) == 2
+        input_C_af_C['C_af_C'] = float(input['C_A']['C_af_C4']) if input_C_af_C['input_mode'] == 2 else None
 
     # 室内機吹き出し風量に関する出力補正係数の入力（暖房）
-    input_mode_C_af_H = int(input['H_A']['input_C_af_H'])
     input_C_af_H: dict = {
-        'input_mode': input_mode_C_af_H,
-        'dedicated_chamber': int(input['H_A']['dedicated_chamber']) == 2,
-        'fixed_fin_direction': int(input['H_A']['fixed_fin_direction']) == 2,
-        'C_af_H': float(input['H_A']['C_af_H']) if input_mode_C_af_H == 2 else None
+        'input_mode': 2,
+        'dedicated_chamber': False,
+        'fixed_fin_direction': False,
+        'C_af_H': 1.0
     }
+    if input['H_A']['type'] == 2:
+        input_C_af_H['input_mode'] = int(input['H_A']['input_C_af_H2'])
+        input_C_af_H['dedicated_chamber'] = int(input['H_A']['dedicated_chamber2']) == 2
+        input_C_af_H['fixed_fin_direction'] = int(input['H_A']['fixed_fin_direction2']) == 2
+        input_C_af_H['C_af_H'] = float(input['H_A']['C_af_H2']) if input_C_af_H['input_mode'] == 2 else None
+    elif input['H_A']['type'] == 3:
+        input_C_af_H['input_mode'] = int(input['H_A']['input_C_af_H3'])
+        input_C_af_H['dedicated_chamber'] = int(input['H_A']['dedicated_chamber3']) == 2
+        input_C_af_H['fixed_fin_direction'] = int(input['H_A']['fixed_fin_direction3']) == 2
+        input_C_af_H['C_af_H'] = float(input['H_A']['C_af_H3']) if input_C_af_H['input_mode'] == 2 else None
+    elif input['H_A']['type'] == 4:
+        input_C_af_H['input_mode'] = int(input['H_A']['input_C_af_H4'])
+        input_C_af_H['dedicated_chamber'] = int(input['H_A']['dedicated_chamber4']) == 2
+        input_C_af_H['fixed_fin_direction'] = int(input['H_A']['fixed_fin_direction4']) == 2
+        input_C_af_H['C_af_H'] = float(input['H_A']['C_af_H4']) if input_C_af_H['input_mode'] == 2 else None
 
     return q_rtd_C, q_rtd_H, q_max_C, q_max_H, e_rtd_C, e_rtd_H, dualcompressor_C, dualcompressor_H, \
         input_C_af_C, input_C_af_H
