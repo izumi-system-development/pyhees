@@ -30,7 +30,7 @@ def version_info() -> str:
     """
     # NOTE: subprocessモジュールによるコミット履歴からの生成は \
     # ipynb 環境では正常に動作しませんでした(returned no-zero exit status 128.)
-    return '_20231025'
+    return '_20231128'
 
 def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, q_rtd_H, q_rtd_C, q_max_H, q_max_C, V_hs_dsgn_H, V_hs_dsgn_C, Q,
             VAV, general_ventilation, hs_CAV, duct_insulation, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i,
@@ -48,6 +48,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         climate = pd.read_csv(climateFile, nrows=24 * 365, encoding="SHIFT-JIS")
     Theta_ex_d_t = get_Theta_ex(climate)
     X_ex_d_t = get_X_ex(climate)
+
     J_d_t = calc_I_s_d_t(0, 0, get_climate_df(climate))
     h_ex_d_t = calc_h_ex(X_ex_d_t, Theta_ex_d_t)
 
@@ -56,8 +57,8 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
 
     h_ex_d_t = calc_h_ex(X_ex_d_t, Theta_ex_d_t)
 
-    df_output['J_d_t']         = J_d_t
-    df_output['h_ex_d_t']      = h_ex_d_t
+    df_output['J_d_t']    = J_d_t.to_numpy()
+    df_output['h_ex_d_t'] = h_ex_d_t
 
     #主たる居室・その他居室・非居室の面積
     A_HCZ_i = np.array([ld.get_A_HCZ_i(i, A_A, A_MR, A_OR) for i in range(1, 6)])
