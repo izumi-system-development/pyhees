@@ -1,5 +1,10 @@
 from jjjexperiment.options import *
 
+# NOTE: subprocessモジュールによるコミット履歴からの生成は \
+# ipynb 環境では正常に動作しませんでした(returned no-zero exit status 128.)
+JJJ_EXPERIMENT_VERSION = '_20231228'
+""" 最終編集日をバージョン管理に使用します"""
+
 # FIXME: PROCESS_TYPE の置き場はこのファイル以外で最適な場所があれば移動する
 PROCESS_TYPE_1 = 'ダクト式セントラル空調機'
 PROCESS_TYPE_2 = 'ルームエアコンディショナ活用型全館空調（旧：現行省エネ法ルームエアコンモデル）'

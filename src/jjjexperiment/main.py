@@ -34,7 +34,7 @@ def calc(input_data : dict, test_mode=False):
     climateFile = input_data['climateFile']
     loadFile    = input_data['loadFile']
 
-    with open(case_name + version_info() + '_input.json', 'w') as f:
+    with open(case_name + constants.JJJ_EXPERIMENT_VERSION + '_input.json', 'w') as f:
         json.dump(input_data, f, indent=4)
 
     jjjexperiment.constants.set_constants(input_data)
@@ -159,7 +159,7 @@ def calc(input_data : dict, test_mode=False):
         """ 電柱研モデルのモデリング定数の確認のためのCSV出力 """
         df_denchu_consts = jjjexperiment.denchu_1 \
             .get_DataFrame_denchu_modeling_consts(spec, cdtn, R2, R1, R0, T_real, RH_real, P_rac_fan_rtd_H)
-        df_denchu_consts.to_csv(case_name + version_info() + '_denchu_consts_H_output.csv', encoding='cp932')
+        df_denchu_consts.to_csv(case_name + constants.JJJ_EXPERIMENT_VERSION + '_denchu_consts_H_output.csv', encoding='cp932')
 
         del cdtn, R2, R1, R0  # NOTE: 以降不要
     else:
@@ -249,7 +249,7 @@ def calc(input_data : dict, test_mode=False):
         """ 電柱研モデルのモデリング定数の確認のためのCSV出力 """
         df_denchu_consts = jjjexperiment.denchu_1 \
             .get_DataFrame_denchu_modeling_consts(spec, cdtn, R2, R1, R0, T_real, RH_real, P_rac_fan_rtd_C)
-        df_denchu_consts.to_csv(case_name + version_info() + '_denchu_consts_C_output.csv', encoding='cp932')
+        df_denchu_consts.to_csv(case_name + constants.JJJ_EXPERIMENT_VERSION + '_denchu_consts_C_output.csv', encoding='cp932')
 
         del cdtn, R2, R1, R0  # NOTE: 以降不要
     else:
@@ -331,7 +331,7 @@ def calc(input_data : dict, test_mode=False):
     df_output1 = pd.DataFrame(index = ['合計値'])
     df_output1['E_H [MJ/year]'] = E_H
     df_output1['E_C [MJ/year]'] = E_C
-    df_output1.to_csv(case_name + version_info() + '_output1.csv', encoding = 'cp932')
+    df_output1.to_csv(case_name + constants.JJJ_EXPERIMENT_VERSION + '_output1.csv', encoding = 'cp932')
 
     df_output2['E_H_d_t [MJ/h]']            = E_H_d_t
     df_output2['E_C_d_t [MJ/h]']            = E_C_d_t
@@ -347,7 +347,7 @@ def calc(input_data : dict, test_mode=False):
     df_output2['E_E_fan_C_d_t [kWh/h]']     = E_E_fan_C_d_t
     df_output2['q_hs_CS_d_t [Wh/h]']        = q_hs_CS_d_t
     df_output2['q_hs_CL_d_t [Wh/h]']        = q_hs_CL_d_t
-    df_output2.to_csv(case_name + version_info() + '_output2.csv', encoding = 'cp932')
+    df_output2.to_csv(case_name + constants.JJJ_EXPERIMENT_VERSION + '_output2.csv', encoding = 'cp932')
 
     # NOTE: 結合テストで確認したい値を返すのに使用します
     if test_mode:
