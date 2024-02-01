@@ -27,6 +27,7 @@ def get_logger(name) -> logging.Logger:
     return logger
 
 
+# TODO: ロガーのデコレータ化
 class LimitedLoggerAdapter(logging.LoggerAdapter):
     """ Testコード経由のみでログを出力する
     """

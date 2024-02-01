@@ -5,6 +5,16 @@ from jjjexperiment.options import *
 JJJ_EXPERIMENT_VERSION = '_20231228'
 """ 最終編集日をバージョン管理に使用します"""
 
+# FIXME: このデコレータの定義箇所どこが最適か
+# NOTE: 関数ラベリング用のデコレータ ex. @jjjexperiment_fork()
+def jjjexperiment_clone(func):
+  """ pyheesモジュール内における jjjexperimentによる 複製された実装"""
+  return func
+def jjjexperiment_mod(func):
+  """ pyheesモジュール内における jjjexperimentによる 改変された実装"""
+  return func
+
+
 # FIXME: PROCESS_TYPE の置き場はこのファイル以外で最適な場所があれば移動する
 PROCESS_TYPE_1 = 'ダクト式セントラル空調機'
 PROCESS_TYPE_2 = 'ルームエアコンディショナ活用型全館空調（旧：現行省エネ法ルームエアコンモデル）'

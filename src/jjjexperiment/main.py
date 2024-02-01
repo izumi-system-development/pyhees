@@ -37,7 +37,7 @@ def calc(input_data : dict, test_mode=False):
     with open(case_name + constants.JJJ_EXPERIMENT_VERSION + '_input.json', 'w') as f:
         json.dump(input_data, f, indent=4)
 
-    jjjexperiment.constants.set_constants(input_data)
+    constants.set_constants(input_data)
     type, tatekata, A_A, A_MR, A_OR, region, sol_region = jjjexperiment.input.get_basic(input_data)
     ENV, NV_MR, NV_OR, TS, r_A_ufvnt, underfloor_insulation, underfloor_air_conditioning_air_supply, hs_CAV = jjjexperiment.input.get_env(input_data)
     mode_H, H_A, H_MR, H_OR, H_HS = jjjexperiment.input.get_heating(input_data, region, A_A)
