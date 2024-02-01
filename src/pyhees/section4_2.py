@@ -295,7 +295,7 @@ def calc_Q_UT_A(A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs
     # (43)
     V_supply_d_t_i = get_V_supply_d_t_i(L_star_H_d_t_i, L_star_CS_d_t_i, Theta_sur_d_t_i, l_duct_i, Theta_star_HBR_d_t,
                                         V_vent_g_i, V_dash_supply_d_t_i, VAV, region, Theta_hs_out_d_t)
-    V_supply_d_t_i = cap_V_supply_d_t_i(V_supply_d_t_i, VAV, )
+    V_supply_d_t_i = cap_V_supply_d_t_i(V_supply_d_t_i, V_dash_supply_d_t_i, V_vent_g_i, region, V_hs_dsgn_H, V_hs_dsgn_C)
 
     # (41)
     Theta_supply_d_t_i = get_Thata_supply_d_t_i(Theta_sur_d_t_i, Theta_hs_out_d_t, Theta_star_HBR_d_t, l_duct_i,
@@ -856,7 +856,7 @@ def get_Theta_hs_out_d_t(VAV, Theta_req_d_t_i, V_dash_supply_d_t_i, L_star_H_d_t
     f3 = np.logical_and(C, np.sum(L_star_CS_d_t_i[:5], axis=0) > 0)
     f4 = np.logical_and(C, np.sum(L_star_CS_d_t_i[:5], axis=0) <= 0)
 
-    if VAV == False and constants.change_heat_source_outlet_required_temperature != 2:
+    if (not VAV) and constants.change_heat_source_outlet_required_temperature != 2:
         # 暖房期および冷房期 (14-1)
         Theta_hs_out_d_t[f1] = np.sum(Theta_req_d_t_i[:5, f1] * V_dash_supply_d_t_i[:5, f1], axis=0) / \
                                        np.sum(V_dash_supply_d_t_i[:5, f1], axis=0)
@@ -1715,6 +1715,8 @@ def get_X_supply_d_t_i(X_star_HBR_d_t, X_hs_out_d_t, L_star_CL_d_t_i, region):
 # ============================================================================
 
 def cap_V_supply_d_t_i(V_supply_d_t_i, V_dash_supply_d_t_i, V_vent_g_i, region, V_hs_dsgn_H, V_hs_dsgn_C):
+    """ get_V_supply_d_t_i からキャップロジックを独立させました
+    """
     _logger.NDdebug("V_supply_d_t_i_キャップ前:", V_supply_d_t_i[0])
     _logger.NDdebug("V_dash_supply_d_t_i:", V_dash_supply_d_t_i[0])
 
@@ -1795,7 +1797,7 @@ def get_V_supply_d_t_i(L_star_H_d_t_i, L_star_CS_d_t_i, Theta_sur_d_t_i, l_duct_
     V_vent_g_i = np.reshape(V_vent_g_i, (5, 1))
     V_vent_g_i = V_vent_g_i.repeat(24 * 365, axis=1)
 
-    if VAV == True:
+    if VAV:
 
         # 暖房期 (43-1)
 
@@ -1828,7 +1830,7 @@ def get_V_supply_d_t_i(L_star_H_d_t_i, L_star_CS_d_t_i, Theta_sur_d_t_i, l_duct_
         # 中間期 (43-3)
         V_supply_d_t_i[:, M] = V_vent_g_i[:, M]
 
-    elif VAV == False:
+    elif not VAV:
 
         # 暖房期および冷房期 (43-4)
         HC = np.logical_or(H, C)
