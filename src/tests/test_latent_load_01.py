@@ -4,14 +4,8 @@ import numpy as np
 import numpy.testing as nptest
 import math
 
-import jjjexperiment.input as input
-from jjjexperiment.constants import PROCESS_TYPE_1, PROCESS_TYPE_2, PROCESS_TYPE_3
-import jjjexperiment.constants as consts
-
 from pyhees.section3_2 import calc_r_env
 
-from jjjexperiment.calc \
-    import calc_E_E_H_d_t, calc_E_E_C_d_t, calc_Q_UT_A
 from pyhees.section4_1 \
     import calc_heating_load, calc_cooling_load
 from pyhees.section4_2 \
@@ -19,8 +13,16 @@ from pyhees.section4_2 \
 from pyhees.section4_2_a \
     import get_A_f_hex, get_A_e_hex, get_alpha_c_hex_C, get_alpha_c_hex_H, get_E_E_fan_H_d_t, get_E_E_fan_C_d_t, get_q_hs_C_d_t, get_q_hs_H_d_t
 
-from test_utils.utils import INPUT_SAMPLE_TYPE3_PATH
+import jjjexperiment.input as input
 from jjjexperiment.logger import LimitedLoggerAdapter as _logger
+
+import jjjexperiment.constants as consts
+from jjjexperiment.constants import PROCESS_TYPE_1, PROCESS_TYPE_2, PROCESS_TYPE_3
+
+from jjjexperiment.section4_2 import calc_Q_UT_A
+from jjjexperiment.section4_2_a import calc_E_E_H_d_t, calc_E_E_C_d_t
+
+from test_utils.utils import INPUT_SAMPLE_TYPE3_PATH
 
 
 class Testコイル特性:
@@ -377,7 +379,6 @@ def prepare_args_for_calc_Q_UT_A() -> dict:
         "YUCACO_r_A_ufvnt": 0.7089130102430821,
         "HEX": None,
         "SHC": None,
-        "R_g": None,
         "spec_MR": None,
         "spec_OR": None,
         "mode_MR": None,
@@ -448,7 +449,6 @@ def prepare_args_for_calc_Q_UT_A() -> dict:
         'underfloor_insulation': uflr_insul,
         'underfloor_air_conditioning_air_supply': uflr_air_cdtn_air_spl,
         'YUCACO_r_A_ufvnt': fixtures["YUCACO_r_A_ufvnt"],
-        'R_g': fixtures["R_g"],
         'climateFile': fixtures["climateFile"],
     }
     H_args = {

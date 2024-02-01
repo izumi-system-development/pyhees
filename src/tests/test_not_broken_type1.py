@@ -6,6 +6,8 @@ import math
 from jjjexperiment.main import calc
 from os import path
 
+from jjjexperiment.logger import LimitedLoggerAdapter as _logger
+
 from test_utils.utils import  \
     expected_inputs, expected_result_type1, INPUT_SAMPLE_TYPE1_PATH
 

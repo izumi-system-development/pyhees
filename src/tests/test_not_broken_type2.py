@@ -6,6 +6,8 @@ import math
 from jjjexperiment.main import calc
 from os import path
 
+from jjjexperiment.logger import LimitedLoggerAdapter as _logger
+
 from test_utils.utils import  \
     expected_inputs, expected_result_type2, INPUT_SAMPLE_TYPE2_PATH
 
@@ -499,14 +501,14 @@ class Test既存計算維持_入力値切替_方式2:
         inputs["H_A"]["dualcompressor"] = 2
 
         # 設置方法の入力（設置方法を入力する or 補正係数を直接入力する）
-        inputs["H_A"]["input_C_af_H"] = 1
+        inputs["H_A"]["input_C_af_H2"] = 1
         # ▼ 入力する場合
-        inputs["H_A"]["C_af_H"] = 1  # 室内機吹き出し風量に関する暖房出力補正係数の入力
+        inputs["H_A"]["C_af_H2"] = 1  # 室内機吹き出し風量に関する暖房出力補正係数の入力
 
         # 専用チャンバーに格納される方式（該当しない or 該当する）
-        inputs["H_A"]["dedicated_chamber"] = 2
+        inputs["H_A"]["dedicated_chamber2"] = 2
         # フィン向きが中央位置に固定される方式（該当しない or 該当する）
-        inputs["H_A"]["fixed_fin_direction"] = 2
+        inputs["H_A"]["fixed_fin_direction2"] = 2
 
         # ファンの比消費電力（入力しない or 入力する）
         inputs["H_A"]["input_f_SFP_H"] = 1
@@ -543,14 +545,14 @@ class Test既存計算維持_入力値切替_方式2:
         inputs["H_A"]["dualcompressor"] = 1
 
         # 設置方法の入力（設置方法を入力する or 補正係数を直接入力する）
-        inputs["H_A"]["input_C_af_H"] = 2  # ★ 補正係数を直接入力する
+        inputs["H_A"]["input_C_af_H2"] = 2  # ★ 補正係数を直接入力する
         # ▼ 入力する場合のみ
-        inputs["H_A"]["C_af_H"] = 0.914  # 室内機吹き出し風量に関する暖房出力補正係数の入力
+        inputs["H_A"]["C_af_H2"] = 0.914  # 室内機吹き出し風量に関する暖房出力補正係数の入力
 
         # 専用チャンバーに格納される方式（該当しない or 該当する）
-        inputs["H_A"]["dedicated_chamber"] = 1
+        inputs["H_A"]["dedicated_chamber2"] = 1
         # フィン向きが中央位置に固定される方式（該当しない or 該当する）
-        inputs["H_A"]["fixed_fin_direction"] = 1
+        inputs["H_A"]["fixed_fin_direction2"] = 1
 
         # ファンの比消費電力（入力しない or 入力する）
         inputs["H_A"]["input_f_SFP_H"] = 2  # ★ 入力する
@@ -649,14 +651,14 @@ class Test既存計算維持_入力値切替_方式2:
         inputs["C_A"]["dualcompressor"] = 2
 
         # 設置方法の入力（設置方法を入力する or 補正係数を直接入力する）
-        inputs["C_A"]["input_C_af_C"] = 1  # ★ 設置方法を入力する
+        inputs["C_A"]["input_C_af_C2"] = 1  # ★ 設置方法を入力する
         # ▼ 入力する場合のみ
-        inputs["C_A"]["C_af_C"] = 1  # 室内機吹き出し風量に関する暖房出力補正係数の入力
+        inputs["C_A"]["C_af_C2"] = 1  # 室内機吹き出し風量に関する暖房出力補正係数の入力
 
         # 専用チャンバーに格納される方式（該当しない or 該当する）
-        inputs["C_A"]["dedicated_chamber"] = 2
+        inputs["C_A"]["dedicated_chamber2"] = 2
         # フィン向きが中央位置に固定される方式（該当しない or 該当する）
-        inputs["C_A"]["fixed_fin_direction"] = 2
+        inputs["C_A"]["fixed_fin_direction2"] = 2
 
         # ファンの比消費電力（入力しない or 入力する）
         inputs["C_A"]["input_f_SFP_C"] = 1  # ★ 入力しない
@@ -693,14 +695,14 @@ class Test既存計算維持_入力値切替_方式2:
         inputs["C_A"]["dualcompressor"] = 1
 
         # 設置方法の入力（設置方法を入力する or 補正係数を直接入力する）
-        inputs["C_A"]["input_C_af_C"] = 2  # ★ 補正係数を直接入力する
+        inputs["C_A"]["input_C_af_C2"] = 2  # ★ 補正係数を直接入力する
         # ▼ 入力する場合のみ
-        inputs["C_A"]["C_af_C"] = 0.980  # 室内機吹き出し風量に関する冷房出力補正係数の入力
+        inputs["C_A"]["C_af_C2"] = 0.980  # 室内機吹き出し風量に関する冷房出力補正係数の入力
 
         # 専用チャンバーに格納される方式（該当しない or 該当する）
-        inputs["C_A"]["dedicated_chamber"] = 1
+        inputs["C_A"]["dedicated_chamber2"] = 1
         # フィン向きが中央位置に固定される方式（該当しない or 該当する）
-        inputs["C_A"]["fixed_fin_direction"] = 1
+        inputs["C_A"]["fixed_fin_direction2"] = 1
 
         # ファンの比消費電力（入力しない or 入力する）
         inputs["C_A"]["input_f_SFP_C"] = 2  # ★ 入力する

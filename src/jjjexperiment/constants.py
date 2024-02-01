@@ -1,3 +1,20 @@
+from jjjexperiment.options import *
+
+# NOTE: subprocessモジュールによるコミット履歴からの生成は \
+# ipynb 環境では正常に動作しませんでした(returned no-zero exit status 128.)
+JJJ_EXPERIMENT_VERSION = '_20231228'
+""" 最終編集日をバージョン管理に使用します"""
+
+# FIXME: このデコレータの定義箇所どこが最適か
+# NOTE: 関数ラベリング用のデコレータ ex. @jjjexperiment_fork()
+def jjjexperiment_clone(func):
+  """ pyheesモジュール内における jjjexperimentによる 複製された実装"""
+  return func
+def jjjexperiment_mod(func):
+  """ pyheesモジュール内における jjjexperimentによる 改変された実装"""
+  return func
+
+
 # FIXME: PROCESS_TYPE の置き場はこのファイル以外で最適な場所があれば移動する
 PROCESS_TYPE_1 = 'ダクト式セントラル空調機'
 PROCESS_TYPE_2 = 'ルームエアコンディショナ活用型全館空調（旧：現行省エネ法ルームエアコンモデル）'
@@ -34,9 +51,9 @@ change_supply_volume_before_vav_adjust: int = 1
 """VAV調整前の吹き出し風量の式を変更"""
 change_heat_source_outlet_required_temperature: int = 1
 """熱源機の出口における空気温度"""
-change_V_supply_d_t_i_max: int = 1
+change_V_supply_d_t_i_max: int = Vサプライの上限キャップ.外さない.value
 """V_supply_d_t_iの上限キャップを外す"""
-carry_over_heat: int = 1
+carry_over_heat: int = 過剰熱量繰越計算.行わない.value
 """過剰熱量を次の時刻に持ち越す"""
 
 #以下、潜熱評価モデル追加対応(暖房)
@@ -187,6 +204,9 @@ def set_constants(input: dict):
   if 'q_rtd_C_limit' in input:
     global q_rtd_C_limit
     q_rtd_C_limit = float(input['q_rtd_C_limit'])
+  if 'R_g' in input:
+    global R_g  # 地盤またはそれを覆う基礎の表面熱伝達抵抗 ((m2・K)/W) ex. 0.15
+    R_g = float(input['R_g'])
   if 'change_supply_volume_before_vav_adjust' in input:
     global change_supply_volume_before_vav_adjust
     change_supply_volume_before_vav_adjust = int(input['change_supply_volume_before_vav_adjust'])

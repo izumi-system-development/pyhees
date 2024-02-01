@@ -45,7 +45,11 @@ from pyhees.section4_3 import \
     get_C_af_H, \
     get_C_af_C
 
+from jjjexperiment.constants import PROCESS_TYPE_3
 import jjjexperiment.constants as constants
+
+from jjjexperiment.logger import LimitedLoggerAdapter as _logger  # デバッグ用ロガー
+from jjjexperiment.options import *
 
 # 未処理負荷と機器の計算に必要な変数を取得
 def calc_Q_UT_A(A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs_dsgn_H, V_hs_dsgn_C, Q,
@@ -290,7 +294,8 @@ def calc_Q_UT_A(A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs
 
     # (43)
     V_supply_d_t_i = get_V_supply_d_t_i(L_star_H_d_t_i, L_star_CS_d_t_i, Theta_sur_d_t_i, l_duct_i, Theta_star_HBR_d_t,
-                                                    V_vent_g_i, V_dash_supply_d_t_i, VAV, region, Theta_hs_out_d_t)
+                                        V_vent_g_i, V_dash_supply_d_t_i, VAV, region, Theta_hs_out_d_t)
+    V_supply_d_t_i = cap_V_supply_d_t_i(V_supply_d_t_i, V_dash_supply_d_t_i, V_vent_g_i, region, V_hs_dsgn_H, V_hs_dsgn_C)
 
     # (41)
     Theta_supply_d_t_i = get_Thata_supply_d_t_i(Theta_sur_d_t_i, Theta_hs_out_d_t, Theta_star_HBR_d_t, l_duct_i,
@@ -851,7 +856,7 @@ def get_Theta_hs_out_d_t(VAV, Theta_req_d_t_i, V_dash_supply_d_t_i, L_star_H_d_t
     f3 = np.logical_and(C, np.sum(L_star_CS_d_t_i[:5], axis=0) > 0)
     f4 = np.logical_and(C, np.sum(L_star_CS_d_t_i[:5], axis=0) <= 0)
 
-    if VAV == False and constants.change_heat_source_outlet_required_temperature != 2:
+    if (not VAV) and constants.change_heat_source_outlet_required_temperature != 2:
         # 暖房期および冷房期 (14-1)
         Theta_hs_out_d_t[f1] = np.sum(Theta_req_d_t_i[:5, f1] * V_dash_supply_d_t_i[:5, f1], axis=0) / \
                                        np.sum(V_dash_supply_d_t_i[:5, f1], axis=0)
@@ -955,7 +960,7 @@ def get_Theta_hs_out_max_H_d_t(Theta_star_hs_in_d_t, Q_hs_max_H_d_t, V_dash_supp
     c_p_air = get_c_p_air()
     rho_air = get_rho_air()
     return np.clip(Theta_star_hs_in_d_t + ((Q_hs_max_H_d_t * 10 ** 6) / \
-                                           (c_p_air * rho_air * np.sum(V_dash_supply_d_t_i[:5, :], axis=0))), None, 45)
+                                           (c_p_air * rho_air * np.sum(V_dash_supply_d_t_i[:5, :], axis=0))), None, constants.Theta_hs_out_max_H_d_t_limit)
 
 
 def get_Theta_hs_out_min_C_d_t(Theta_star_hs_in_d_t, Q_hs_max_CS_d_t, V_dash_supply_d_t_i):
@@ -973,7 +978,7 @@ def get_Theta_hs_out_min_C_d_t(Theta_star_hs_in_d_t, Q_hs_max_CS_d_t, V_dash_sup
     c_p_air = get_c_p_air()
     rho_air = get_rho_air()
     return np.clip(Theta_star_hs_in_d_t - ((Q_hs_max_CS_d_t * 10 ** 6) / \
-                                           (c_p_air * rho_air * np.sum(V_dash_supply_d_t_i[:5, :], axis=0))), 15, None)
+                                           (c_p_air * rho_air * np.sum(V_dash_supply_d_t_i[:5, :], axis=0))), constants.Theta_hs_out_min_C_d_t_limit, None)
 
 
 def get_X_hs_out_min_C_d_t(X_star_hs_in_d_t, Q_hs_max_CL_d_t, V_dash_supply_d_t_i):
@@ -1157,7 +1162,7 @@ def get_C_df_H_d_t(Theta_ex_d_t, h_ex_d_t):
 
     """
     C_df_H_d_t = np.ones(24 * 365)
-    C_df_H_d_t[np.logical_and(Theta_ex_d_t < 5, h_ex_d_t > 80)] = 0.77
+    C_df_H_d_t[np.logical_and(Theta_ex_d_t < constants.defrost_temp_ductcentral, h_ex_d_t > constants.defrost_humid_ductcentral)] = constants.C_df_H_d_t_defrost_ductcentral
     return C_df_H_d_t
 
 
@@ -1709,6 +1714,59 @@ def get_X_supply_d_t_i(X_star_HBR_d_t, X_hs_out_d_t, L_star_CL_d_t_i, region):
 # 10.3 吹き出し風量
 # ============================================================================
 
+def cap_V_supply_d_t_i(V_supply_d_t_i, V_dash_supply_d_t_i, V_vent_g_i, region, V_hs_dsgn_H, V_hs_dsgn_C):
+    """ get_V_supply_d_t_i からキャップロジックを独立させました
+    """
+    _logger.NDdebug("V_supply_d_t_i_キャップ前:", V_supply_d_t_i[0])
+    _logger.NDdebug("V_dash_supply_d_t_i:", V_dash_supply_d_t_i[0])
+
+    V_vent_g_i = np.reshape(V_vent_g_i, (5, 1))
+    V_vent_g_i = V_vent_g_i.repeat(24 * 365, axis=1)
+
+    H, C, M = get_season_array_d_t(region)
+
+    # 吹き出し風量V_(supply,d,t,i)は、VAV調整前の吹き出し風量V_(supply,d,t,i)^'を上回る場合はVAV調整前の \
+    # 吹き出し風量V_(supply,d,t,i)^'に等しいとし、全般換気量V_(vent,g,i)を下回る場合は全般換気量V_(vent,g,i)に等しいとする
+    if constants.change_V_supply_d_t_i_max == Vサプライの上限キャップ.外さない.value:
+        new_V_supply_d_t_i = np.clip(V_supply_d_t_i, V_vent_g_i, V_dash_supply_d_t_i)
+
+    elif constants.change_V_supply_d_t_i_max == Vサプライの上限キャップ.全体でキャップ.value:
+        V_supply_d_t_i = np.clip(V_supply_d_t_i, V_vent_g_i, None)
+        V_supply_d_t = np.sum(V_supply_d_t_i, axis=0)  # 1d-shape(5, )
+
+        # キャップとしての設計風量
+        V_hs_dsgn_C = V_hs_dsgn_C if V_hs_dsgn_C is not None else float('inf')
+        V_hs_dsgn_H = V_hs_dsgn_H if V_hs_dsgn_H is not None else float('inf')
+
+        overflow_mask_H = np.logical_and(H, V_supply_d_t > V_hs_dsgn_H)
+        overflow_mask_C = np.logical_and(C, V_supply_d_t > V_hs_dsgn_C)
+
+        ratios_H = np.divide(
+          np.full(len(V_supply_d_t), V_hs_dsgn_H, dtype=float),
+          np.ceil(V_supply_d_t * 1000) / 1000,  # NOTE: 計算速度と四捨五入による設計風量超え防止のため
+          where=overflow_mask_H, out=np.ones_like(V_supply_d_t, dtype=float))
+        ratios_C = np.divide(
+          np.full(len(V_supply_d_t), V_hs_dsgn_C, dtype=float),
+          np.ceil(V_supply_d_t * 1000) / 1000,
+          where=overflow_mask_C, out=np.ones_like(V_supply_d_t, dtype=float))
+
+        new_V_supply_d_t_i = V_supply_d_t_i * ratios_H[np.newaxis, :] * ratios_C[np.newaxis, :]
+
+        check = np.sum(new_V_supply_d_t_i, axis=0)
+        assert all(check[H] <= V_hs_dsgn_H)
+        assert all(check[C] <= V_hs_dsgn_C)
+
+    elif constants.change_V_supply_d_t_i_max == Vサプライの上限キャップ.ピンポイントでキャップ.value:
+        # TODO: 実装する
+        new_V_supply_d_t_i = np.clip(V_supply_d_t_i, V_vent_g_i, V_dash_supply_d_t_i)
+
+    else:
+        raise ValueError("change_V_supply_d_t_i is out of range")
+
+    _logger.NDdebug("V_supply_d_t_i_キャップ後:", V_supply_d_t_i[0])
+
+    return new_V_supply_d_t_i
+
 def get_V_supply_d_t_i(L_star_H_d_t_i, L_star_CS_d_t_i, Theta_sur_d_t_i, l_duct_i, Theta_star_HBR_d_t, V_vent_g_i,
                        V_dash_supply_d_t_i, VAV, region, Theta_hs_out_d_t):
     """(43-1)(43-2)(43-3)(43-4)(43-5)
@@ -1739,7 +1797,7 @@ def get_V_supply_d_t_i(L_star_H_d_t_i, L_star_CS_d_t_i, Theta_sur_d_t_i, l_duct_
     V_vent_g_i = np.reshape(V_vent_g_i, (5, 1))
     V_vent_g_i = V_vent_g_i.repeat(24 * 365, axis=1)
 
-    if VAV == True:
+    if VAV:
 
         # 暖房期 (43-1)
 
@@ -1772,7 +1830,7 @@ def get_V_supply_d_t_i(L_star_H_d_t_i, L_star_CS_d_t_i, Theta_sur_d_t_i, l_duct_
         # 中間期 (43-3)
         V_supply_d_t_i[:, M] = V_vent_g_i[:, M]
 
-    elif VAV == False:
+    elif not VAV:
 
         # 暖房期および冷房期 (43-4)
         HC = np.logical_or(H, C)
@@ -1782,13 +1840,6 @@ def get_V_supply_d_t_i(L_star_H_d_t_i, L_star_CS_d_t_i, Theta_sur_d_t_i, l_duct_
         V_supply_d_t_i[:, M] = V_vent_g_i[:, M]
     else:
         raise ValueError(VAV)
-
-    # 吹き出し風量V_(supply,d,t,i)は、VAV調整前の吹き出し風量V_(supply,d,t,i)^'を上回る場合はVAV調整前の \
-    # 吹き出し風量V_(supply,d,t,i)^'に等しいとし、全般換気量V_(vent,g,i)を下回る場合は全般換気量V_(vent,g,i)に等しいとする
-    if constants.change_V_supply_d_t_i_max == 2:
-      V_supply_d_t_i = np.clip(V_supply_d_t_i, V_vent_g_i, None)
-    else:
-      V_supply_d_t_i = np.clip(V_supply_d_t_i, V_vent_g_i, V_dash_supply_d_t_i)
 
     return V_supply_d_t_i
 
@@ -1809,7 +1860,8 @@ def get_V_dash_supply_d_t_i(r_supply_des_i, V_dash_hs_supply_d_t, V_vent_g_i):
       日付dの時刻tにおけるVAV調整前の熱源機の風量（m3/h）
 
     """
-    return np.maximum(r_supply_des_i[:5, np.newaxis] * V_dash_hs_supply_d_t, V_vent_g_i[:5, np.newaxis])
+    return np.maximum(r_supply_des_i[:5, np.newaxis] * V_dash_hs_supply_d_t,
+                      V_vent_g_i[:5, np.newaxis])
 
 def get_V_dash_supply_d_t_i_2023(r_supply_des_d_t_i, V_dash_hs_supply_d_t, V_vent_g_i):
     """(44)
@@ -1823,7 +1875,8 @@ def get_V_dash_supply_d_t_i_2023(r_supply_des_d_t_i, V_dash_hs_supply_d_t, V_ven
       日付dの時刻tにおけるVAV調整前の熱源機の風量（m3/h）
 
     """
-    return np.maximum(np.sum(r_supply_des_d_t_i, axis=0) * V_dash_hs_supply_d_t, V_vent_g_i[:5, np.newaxis])
+    return np.maximum(r_supply_des_d_t_i * V_dash_hs_supply_d_t,
+                      V_vent_g_i[:5, np.newaxis])
 
 def get_r_supply_des_i(A_HCZ_i):
     """(45)
@@ -1853,11 +1906,38 @@ def get_r_supply_des_d_t_i_2023(region, L_CS_d_t_i, L_H_d_t_i):
     from pyhees.section4_2_a import get_season_array_d_t
     H, C, M = get_season_array_d_t(region)
     r_supply_des_d_t_i = np.zeros((5, 24 * 365))
-    sum_L_H_d_t_i = np.sum(L_H_d_t_i[:5, H], axis=0)
-    r_supply_des_d_t_i[:, H] = np.divide(L_H_d_t_i[:5, H], sum_L_H_d_t_i, out=np.zeros_like(L_H_d_t_i[:5, H]), where=sum_L_H_d_t_i!=0)
-    r_supply_des_d_t_i[:, M] = 0
-    sum_L_CS_d_t_i = np.sum(L_CS_d_t_i[:5, C], axis=0)
-    r_supply_des_d_t_i[:, C] = np.divide(L_CS_d_t_i[:5, C], sum_L_CS_d_t_i, out=np.zeros_like(L_CS_d_t_i[:5, C]), where=sum_L_CS_d_t_i!=0)
+
+    # NOTE: よりシンプルに考えるため、どの時刻でとっても合計が1となる配列を作成します
+
+    sum_L_H_d_t = np.sum(L_H_d_t_i[:5, H], axis=0)  # 1d-shape(4056, )
+    sum_L_H_d_t = np.reshape(sum_L_H_d_t, (1, len(sum_L_H_d_t)))  # 2d-shape(1, 4056)
+
+    r_supply_des_d_t_i[:, H] \
+      = np.divide( \
+          L_H_d_t_i[:5, H],  # 2d-shape(5, 4056)
+          sum_L_H_d_t,       # 2d-shape(1, 4056)
+          where=sum_L_H_d_t!=0,
+          out=0.2 * np.ones_like(L_H_d_t_i[:5, H]))  # NOTE: where False 時の値
+
+    sum_L_CS_d_t = np.sum(L_CS_d_t_i[:5, C], axis=0)
+    sum_L_CS_d_t = np.reshape(sum_L_CS_d_t, (1, len(sum_L_CS_d_t)))  # 2d-shape(1, 2808)
+
+    r_supply_des_d_t_i[:, C] \
+      = np.divide(
+          L_CS_d_t_i[:5, C],  # 2d-shape(5, 2808)
+          sum_L_CS_d_t,       # 2d-shape(1, 2808)
+          where=sum_L_CS_d_t!=0,
+          out=0.2 * np.ones_like(L_CS_d_t_i[:5, C]))  # NOTE: where False 時の値
+
+    r_supply_des_d_t_i[:, M] = 0.2  # NOTE: 合計で1となるよう
+
+    # 確認コード: 全ての時刻で合計が1(バランス)
+    sum_each_columns = np.sum(r_supply_des_d_t_i, axis=0)
+    # NOTE: math ライブラリなど使わないない簡易的なチェックにしています
+    sum_each_columns.all()
+    condition = (sum_each_columns > 0.9) & (sum_each_columns < 1.1)
+    check = sum_each_columns[condition]
+    assert len(check) == len(sum_each_columns)
 
     return r_supply_des_d_t_i
 
@@ -2401,7 +2481,7 @@ l_duct_R_i = np.array([
 # ダクトiの線熱損失係数 [W/mK]
 def get_phi_i():
     """ """
-    return np.array([0.49] * 5)
+    return np.array([constants.phi_i] * 5)
 
 
 # ============================================================================

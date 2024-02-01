@@ -328,7 +328,7 @@ def get_V_fan_dsgn_H(V_fan_rtd_H):
       暖房時の送風機の設計風量（m3/h）
 
     """
-    return V_fan_rtd_H * 0.79
+    return V_fan_rtd_H * constants.C_V_fan_dsgn_H
 
 
 def get_V_fan_dsgn_C(V_fan_rtd_C):
@@ -341,7 +341,7 @@ def get_V_fan_dsgn_C(V_fan_rtd_C):
       冷房時の送風機の設計風量（m3/h）
 
     """
-    return V_fan_rtd_C * 0.79
+    return V_fan_rtd_C * constants.C_V_fan_dsgn_C
 
 
 # ============================================================================

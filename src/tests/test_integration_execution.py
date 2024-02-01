@@ -49,7 +49,6 @@ class Test既存計算維持_デフォルト入力時:
         _logger.init_logger()
 
         inputs = copy.deepcopy(self._inputs1)
-        # inputs["carry_over_heat"] = 過剰熱量繰越計算.行う.value
         result = calc(inputs, test_mode=True)
 
         assert result['TValue'].E_C == pytest.approx(expected_result_type1.E_C, rel=1e-6)
